@@ -1,0 +1,1568 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f6f5f1" />
+  <title>Финлайф — Калькулятор PRO</title>
+  <style>
+:root {
+  --ink: #19211c;
+  --muted: #69716c;
+  --paper: #f5f4ef;
+  --surface: #fff;
+  --line: #dedfd9;
+  --green: #176b4d;
+  --green-dark: #0e4e37;
+  --green-soft: #e5f1eb;
+  --orange: #e7a24b;
+  --danger: #a63c3c;
+  --shadow: 0 18px 50px rgba(31, 48, 38, .08);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: Manrope, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app-shell { min-height: 100vh; }
+.topbar { height: 76px; padding: 0 max(24px, calc((100vw - 1240px) / 2)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; background: rgba(255,255,255,.92); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(14px); }
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: var(--green); font-weight: 800; }
+.brand strong, .brand span { display: block; }
+.brand strong { font-size: 16px; line-height: 1.2; }
+.brand span { color: var(--muted); font-size: 11px; margin-top: 2px; }
+.tabs { display: flex; gap: 5px; background: #efefeb; border-radius: 12px; padding: 4px; }
+.tab { border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 9px 16px; font-size: 13px; font-weight: 700; }
+.tab.active { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.save-indicator { justify-self: end; color: var(--muted); font-size: 12px; display: flex; gap: 7px; align-items: center; }
+.save-indicator span { width: 7px; height: 7px; background: #4caf7b; border-radius: 50%; }
+main { width: min(1240px, calc(100% - 40px)); margin: 0 auto; padding: 44px 0 80px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.page-heading.compact { align-items: center; }
+.page-heading h1 { margin: 4px 0 8px; font-size: clamp(28px, 4vw, 43px); line-height: 1.08; letter-spacing: -.04em; }
+.page-heading p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 14px; }
+.eyebrow { margin: 0; color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.panel { background: var(--surface); border: 1px solid rgba(211,213,207,.85); border-radius: 22px; box-shadow: var(--shadow); }
+.calculator-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, .85fr); gap: 24px; align-items: start; }
+.form-panel { padding: 28px; }
+.summary-panel { overflow: hidden; position: sticky; top: 100px; }
+.section-title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.section-title > span { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: var(--green-soft); color: var(--green); font-size: 12px; font-weight: 800; }
+.section-title h2, .table-heading h2 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+.section-title p, .table-heading p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.field-row { display: grid; grid-template-columns: 1fr 1.6fr; gap: 14px; }
+.tariff-row { grid-template-columns: .8fr 1.5fr 1fr; }
+.field { display: block; min-width: 0; }
+.field.full { margin-bottom: 14px; }
+.field > span { display: block; color: #4d5650; font-size: 12px; font-weight: 700; margin: 0 0 7px 2px; }
+input, select, textarea { width: 100%; min-height: 45px; border: 1px solid var(--line); color: var(--ink); background: #fbfbf9; border-radius: 11px; padding: 0 12px; outline: 0; transition: .18s ease; }
+textarea { padding-top: 11px; padding-bottom: 11px; resize: vertical; line-height: 1.45; }
+input:focus, select:focus, textarea:focus { border-color: #7aae96; box-shadow: 0 0 0 3px rgba(23,107,77,.1); }
+.rate-hint { min-height: 38px; margin-top: 12px; border-radius: 10px; padding: 9px 12px; background: var(--green-soft); color: var(--green-dark); font-size: 12px; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.rate-hint.error { color: var(--danger); background: #faeaea; }
+.rate-hint strong { white-space: nowrap; }
+.tariff-service-set-row { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(220px, .75fr); gap: 13px; align-items: end; margin-top: 14px; }
+.tariff-service-set-row .field > small { display: block; margin: 6px 2px 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.tariff-service-set-preview { min-height: 45px; padding: 9px 12px; display: flex; flex-direction: column; justify-content: center; border: 1px solid #bad5c7; border-radius: 11px; color: var(--green-dark); background: var(--green-soft); }
+.tariff-service-set-preview strong, .tariff-service-set-preview span { display: block; }
+.tariff-service-set-preview strong { font-size: 13px; }
+.tariff-service-set-preview span { margin-top: 2px; font-size: 12px; }
+.tariff-service-set-preview.empty { color: var(--danger); border-color: #efcdcd; background: #faeaea; }
+.divider { height: 1px; background: #ededE8; margin: 26px 0; }
+.counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+.coefficient-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--line); }
+.coefficient-field > small { display: block; color: var(--muted); font-size: 10px; margin: 6px 2px 0; line-height: 1.35; }
+.coefficient-input { display: grid; grid-template-columns: 38px 1fr; align-items: center; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: #fbfbf9; }
+.coefficient-input b { color: var(--green); text-align: center; font-size: 16px; }
+.coefficient-input input { border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent; }
+.comment-field { margin-top: 18px; }
+.stepper { display: grid; grid-template-columns: 36px 1fr 36px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: #fbfbf9; }
+.stepper input { min-width: 0; border: 0; border-radius: 0; text-align: center; padding: 0; appearance: textfield; background: transparent; }
+.stepper input::-webkit-inner-spin-button { display: none; }
+.stepper button { border: 0; background: transparent; color: var(--green); font-size: 19px; font-weight: 700; }
+.stepper button:hover { background: var(--green-soft); }
+.service-picker { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.selected-services { display: grid; gap: 8px; margin-top: 12px; }
+.service-line { display: grid; grid-template-columns: minmax(0, 1fr) 80px auto auto; gap: 10px; align-items: center; padding: 10px 11px; background: #f7f7f3; border-radius: 12px; }
+.service-line .name { min-width: 0; font-size: 12px; font-weight: 700; }
+.service-line .name small { display: block; color: var(--muted); margin-top: 2px; font-weight: 500; }
+.service-line input { min-height: 36px; text-align: center; }
+.service-line .line-total { min-width: 86px; font-size: 12px; font-weight: 800; text-align: right; }
+.icon-button { width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 9px; color: #8d9690; background: transparent; }
+.icon-button:hover { color: var(--danger); background: #faeaea; }
+.button { min-height: 42px; padding: 0 15px; border-radius: 11px; border: 1px solid transparent; font-weight: 750; font-size: 12px; white-space: nowrap; }
+.button.dark { color: #fff; background: var(--ink); }
+.button.primary { color: #fff; background: var(--green); }
+.button.primary:hover, .button.dark:hover { filter: brightness(.93); }
+.button.secondary { color: var(--ink); border-color: var(--line); background: #fff; }
+.button.danger-ghost { color: var(--danger); border-color: #efcdcd; background: #fff; }
+.full-width { width: calc(100% - 48px); margin: 0 24px 24px; }
+.summary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 0 24px 24px; }
+.summary-top { padding: 28px 28px 24px; color: #fff; background: var(--green-dark); position: relative; overflow: hidden; }
+.summary-top::after { content: ""; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.06); position: absolute; right: -65px; top: -88px; }
+.summary-top .eyebrow { color: #a8d6c0; }
+.grand-total { margin: 6px 0 5px; font-size: 42px; line-height: 1.1; font-weight: 800; letter-spacing: -.04em; }
+.summary-client { color: #c6ddd2; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.breakdown { padding: 22px 24px 14px; display: grid; gap: 12px; }
+.breakdown-line { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; color: #475049; font-size: 12px; }
+.breakdown-line span:first-child { max-width: 70%; }
+.breakdown-line strong { color: var(--ink); white-space: nowrap; }
+.breakdown-line.subtotal { padding-top: 13px; border-top: 1px solid var(--line); font-weight: 750; }
+.breakdown-line.discount strong { color: var(--green); }
+.breakdown-line.total { padding-top: 13px; border-top: 1px solid var(--line); color: var(--ink); font-weight: 800; }
+.breakdown-group { color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; padding-top: 4px; }
+.summary-note { margin: 3px 24px 18px; padding: 11px 12px; border-radius: 10px; background: #f4f3ee; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.summary-comment { margin: 0 24px 14px; padding: 11px 12px; border-left: 3px solid var(--orange); border-radius: 8px; background: #fff8ec; color: #5d5549; font-size: 11px; line-height: 1.5; white-space: pre-wrap; }
+.alert { margin: 16px 24px 0; padding: 11px 13px; border-radius: 10px; font-size: 12px; }
+.alert.error { color: var(--danger); background: #faeaea; }
+.alert.success { color: var(--green-dark); background: var(--green-soft); }
+.hidden { display: none !important; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: end; }
+.file-button { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.file-button input { display: none; }
+.directory-tabs { display: flex; gap: 6px; margin-bottom: 13px; overflow-x: auto; }
+.directory-tab { border: 0; border-radius: 10px; padding: 9px 13px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 750; white-space: nowrap; }
+.directory-tab.active { color: var(--green-dark); background: var(--green-soft); }
+.directory-tab span { opacity: .65; }
+.directory-view { display: none; overflow: hidden; }
+.directory-view.active { display: block; }
+.table-heading { padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { color: var(--muted); background: #fafaf7; font-size: 10px; text-align: left; text-transform: uppercase; letter-spacing: .08em; }
+th, td { padding: 10px 12px; border-bottom: 1px solid #eeeeea; }
+td input, td select { min-height: 36px; border-radius: 8px; font-size: 12px; background: #fff; }
+th:first-child, td:first-child { padding-left: 24px; }
+th:last-child, td:last-child { padding-right: 24px; width: 48px; }
+tr:last-child td { border-bottom: 0; }
+tr.duplicate td { background: #fff1f1; }
+.settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 24px; }
+.setting-card { padding: 17px; border: 1px solid var(--line); border-radius: 13px; background: #fbfbf9; }
+.setting-card label { display: grid; grid-template-columns: 1fr 130px; align-items: center; gap: 14px; }
+.setting-card strong { display: block; font-size: 13px; }
+.setting-card small { display: block; color: var(--muted); font-size: 10px; margin-top: 4px; line-height: 1.35; }
+.setting-card input { text-align: right; background: #fff; }
+.setting-card input:disabled { color: var(--green-dark); background: var(--green-soft); opacity: 1; cursor: not-allowed; }
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); padding: 11px 15px; border-radius: 11px; color: #fff; background: var(--ink); box-shadow: 0 12px 32px rgba(0,0,0,.2); font-size: 12px; opacity: 0; pointer-events: none; transition: .2s ease; z-index: 50; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.modal-open { overflow: hidden; }
+.proposal-modal { position: fixed; inset: 0; z-index: 100; overflow-y: auto; padding: 22px; background: rgba(17, 27, 21, .72); backdrop-filter: blur(8px); }
+.proposal-frame { width: min(900px, 100%); margin: 0 auto; }
+.proposal-toolbar { position: sticky; top: 0; z-index: 2; min-height: 62px; padding: 10px 14px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; color: #fff; background: #16241c; border-radius: 16px 16px 0 0; box-shadow: 0 10px 28px rgba(0,0,0,.18); }
+.proposal-toolbar span { text-align: center; font-size: 12px; font-weight: 700; }
+.proposal-document { min-height: 1120px; padding: 54px 58px 42px; color: #18231c; background: #fff; border-radius: 0 0 16px 16px; box-shadow: 0 24px 70px rgba(0,0,0,.22); }
+.proposal-header { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-bottom: 25px; border-bottom: 1px solid #dfe5df; }
+.proposal-brand { display: flex; align-items: center; gap: 14px; }
+.proposal-brand img { width: 58px; height: 58px; object-fit: contain; }
+.proposal-brand strong, .proposal-brand span, .proposal-meta strong, .proposal-meta span { display: block; }
+.proposal-brand strong { color: #318b36; font-size: 27px; line-height: 1; letter-spacing: -.03em; }
+.proposal-brand span { margin-top: 6px; color: #6c766f; font-size: 10px; }
+.proposal-meta { text-align: right; }
+.proposal-meta span { color: #318b36; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.proposal-meta strong { margin-top: 6px; font-size: 12px; font-weight: 650; }
+.proposal-hero { padding: 58px 0 48px; }
+.proposal-hero > p { margin: 0 0 8px; color: #6c766f; font-size: 12px; }
+.proposal-hero h1 { max-width: 650px; margin: 0; font-size: 38px; line-height: 1.12; letter-spacing: -.04em; }
+.proposal-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 20px; }
+.proposal-tags span { padding: 7px 10px; color: #276a33; background: #ebf4e9; border-radius: 7px; font-size: 10px; font-weight: 750; }
+.proposal-section { margin-top: 10px; }
+.proposal-section-heading { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+.proposal-section-heading > span { width: 29px; height: 29px; display: grid; place-items: center; flex: 0 0 auto; color: #fff; background: #318b36; border-radius: 50%; font-size: 9px; font-weight: 800; }
+.proposal-section-heading h2 { margin: 1px 0 0; font-size: 16px; }
+.proposal-section-heading p { margin: 4px 0 0; color: #768079; font-size: 10px; }
+.proposal-table { width: 100%; border-collapse: collapse; }
+.proposal-table td { padding: 12px 14px; border-bottom: 1px solid #edf0ec; font-size: 11px; }
+.proposal-table td:first-child { padding-left: 14px; }
+.proposal-table td:last-child { width: 155px; padding-right: 14px; text-align: right; font-weight: 750; white-space: nowrap; }
+.proposal-table td strong { display: block; font-size: 11px; }
+.proposal-table td small { display: block; margin-top: 3px; color: #788079; font-size: 9px; }
+.proposal-table tr:nth-child(odd) td { background: #fafbf9; }
+.proposal-total { margin-top: 15px; padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; gap: 20px; color: #fff; background: linear-gradient(135deg, #246f31, #52a53f); border-radius: 13px; }
+.proposal-total span { font-size: 12px; font-weight: 650; }
+.proposal-total strong { font-size: 26px; letter-spacing: -.03em; }
+.proposal-services { margin-top: 36px; }
+.proposal-services-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.proposal-service-card { padding: 17px 18px; border: 1px solid #dfe5df; border-radius: 11px; background: #fafbf9; break-inside: avoid; }
+.proposal-service-card h3 { margin: 0 0 12px; color: #276a33; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+.proposal-service-card ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.proposal-service-card li { position: relative; padding-left: 17px; color: #4f594f; font-size: 11px; line-height: 1.5; }
+.proposal-service-card li::before { content: "✓"; position: absolute; left: 0; color: #318b36; font-weight: 800; }
+.proposal-service-card > p { margin: 0; color: #788079; font-size: 11px; line-height: 1.5; }
+.proposal-comment { margin-top: 32px; }
+.proposal-comment > p { margin: 0; padding: 17px 19px; color: #4f594f; background: #f5f7f3; border-left: 3px solid #69a743; border-radius: 9px; font-size: 11px; line-height: 1.6; white-space: pre-wrap; }
+.proposal-footer { margin-top: 54px; padding-top: 20px; display: flex; justify-content: space-between; gap: 40px; border-top: 1px solid #dfe5df; color: #7a837d; }
+.proposal-footer div { min-width: 165px; }
+.proposal-footer strong, .proposal-footer span { display: block; }
+.proposal-footer strong { color: #318b36; font-size: 14px; }
+.proposal-footer span { margin-top: 3px; font-size: 8px; }
+.proposal-footer p { max-width: 390px; margin: 0; text-align: right; font-size: 8px; line-height: 1.45; }
+
+.client-services-document { padding: 40px 44px 34px; overflow: hidden; }
+.client-services-brand { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.client-services-brand > div { display: flex; align-items: center; gap: 14px; }
+.client-services-brand img { width: 58px; height: 58px; object-fit: contain; }
+.client-services-brand strong, .client-services-brand span { display: block; }
+.client-services-brand strong { color: #318b36; font-size: 26px; line-height: 1; letter-spacing: -.03em; }
+.client-services-brand span { margin-top: 6px; color: var(--muted); font-size: 10px; }
+.client-services-brand > p { margin: 0; color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.client-services-intro { max-width: 720px; padding: 42px 0 30px; }
+.client-services-intro h2 { margin: 7px 0 12px; font-size: clamp(27px, 4vw, 39px); line-height: 1.12; letter-spacing: -.04em; }
+.client-services-intro > p:last-child { max-width: 650px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.client-tariff-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.client-tariff-card { padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: #fbfbf9; break-inside: avoid; }
+.client-tariff-card.featured { border-color: #a8cdb9; background: linear-gradient(160deg, #f4faf6, #fff); box-shadow: inset 0 3px 0 #318b36; }
+.client-tariff-title { display: flex; align-items: center; gap: 12px; padding-bottom: 17px; border-bottom: 1px solid #e7e9e4; }
+.client-tariff-title > span { width: 32px; height: 32px; display: grid; place-items: center; flex: 0 0 auto; color: #fff; background: var(--green); border-radius: 50%; font-size: 10px; font-weight: 800; }
+.client-tariff-title p, .client-tariff-title h3 { margin: 0; }
+.client-tariff-title p { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.client-tariff-title h3 { margin-top: 2px; font-size: 22px; letter-spacing: -.03em; }
+.client-tariff-title small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.client-frequency { margin-top: 20px; }
+.client-frequency h4 { margin: 0 0 11px; color: var(--green-dark); font-size: 12px; text-transform: uppercase; letter-spacing: .07em; }
+.client-frequency ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.client-frequency li { position: relative; padding-left: 20px; color: #465049; font-size: 11px; line-height: 1.48; }
+.client-frequency li::before { content: "✓"; position: absolute; left: 0; top: 0; color: #318b36; font-weight: 800; }
+.empty-service-list { margin: 0; color: var(--muted); font-size: 11px; font-style: italic; }
+.client-services-footer { margin-top: 34px; padding-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+.client-services-footer strong { color: #318b36; font-size: 14px; }
+
+@media (max-width: 880px) {
+  .topbar { padding: 0 20px; grid-template-columns: 1fr auto; }
+  .tabs { order: 3; grid-column: 1 / -1; position: fixed; left: 16px; right: 16px; bottom: 14px; z-index: 30; box-shadow: 0 10px 35px rgba(0,0,0,.18); }
+  .tab { flex: 1; }
+  .save-indicator { display: none; }
+  main { width: min(100% - 28px, 680px); padding-top: 28px; padding-bottom: 100px; }
+  .calculator-grid { grid-template-columns: 1fr; }
+  .summary-panel { position: static; }
+  .page-heading { align-items: flex-start; }
+  .page-heading.compact { flex-direction: column; }
+  .toolbar { justify-content: flex-start; }
+  .client-tariff-cards { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 580px) {
+  .brand span { display: none; }
+  .page-heading { flex-direction: column; }
+  .page-heading h1 { font-size: 31px; }
+  .form-panel { padding: 20px; }
+  .field-row { grid-template-columns: 1fr; }
+  .counter-grid { grid-template-columns: 1fr; }
+  .coefficient-grid { grid-template-columns: 1fr; }
+  .tariff-service-set-row { grid-template-columns: 1fr; }
+  .service-picker { grid-template-columns: 1fr; }
+  .service-line { grid-template-columns: 1fr 68px auto; }
+  .service-line .line-total { grid-column: 1 / 3; text-align: left; }
+  .settings-grid { grid-template-columns: 1fr; padding: 15px; }
+  .setting-card label { grid-template-columns: 1fr 100px; }
+  .grand-total { font-size: 36px; }
+  .summary-actions { grid-template-columns: 1fr; }
+  .proposal-modal { padding: 0; background: #fff; }
+  .proposal-toolbar { border-radius: 0; grid-template-columns: auto auto; }
+  .proposal-toolbar span { display: none; }
+  .proposal-document { min-height: 100vh; padding: 34px 22px; border-radius: 0; box-shadow: none; }
+  .proposal-header { align-items: flex-start; }
+  .proposal-brand span { display: none; }
+  .proposal-brand img { width: 46px; height: 46px; }
+  .proposal-brand strong { font-size: 23px; }
+  .proposal-hero { padding: 38px 0 34px; }
+  .proposal-hero h1 { font-size: 30px; }
+  .proposal-services-grid { grid-template-columns: 1fr; }
+  .proposal-footer { flex-direction: column; gap: 14px; }
+  .proposal-footer p { text-align: left; }
+  .client-services-document { padding: 28px 20px; }
+  .client-services-brand { align-items: flex-start; }
+  .client-services-brand > p { display: none; }
+  .client-services-intro { padding: 32px 0 24px; }
+  .client-tariff-card { padding: 20px; }
+  .client-services-footer { align-items: flex-start; flex-direction: column; gap: 5px; }
+}
+
+@media print {
+  @page { size: A4; margin: 0; }
+  body { background: #fff; }
+  body > .app-shell, body > .toast, .proposal-toolbar { display: none !important; }
+  .proposal-modal { position: static; overflow: visible; padding: 0; background: #fff; backdrop-filter: none; }
+  .proposal-frame { width: 100%; margin: 0; }
+  .proposal-document { min-height: 297mm; padding: 16mm 17mm 13mm; border-radius: 0; box-shadow: none; }
+  .proposal-hero { padding: 13mm 0 10mm; }
+  .proposal-table tr, .proposal-total, .proposal-service-card, .proposal-comment { break-inside: avoid; }
+  body.printing-services > .app-shell { display: block !important; }
+  body.printing-services > .proposal-modal, body.printing-services > .toast, body.printing-services .topbar, body.printing-services #calculator, body.printing-services #directory, body.printing-services .client-services-heading { display: none !important; }
+  body.printing-services main { width: 100%; margin: 0; padding: 0; }
+  body.printing-services #clientServices { display: block !important; }
+  body.printing-services .client-services-document { min-height: 297mm; padding: 13mm 15mm 11mm; border: 0; border-radius: 0; box-shadow: none; }
+  body.printing-services .client-services-intro { padding: 10mm 0 7mm; }
+  body.printing-services .client-tariff-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5mm; }
+  body.printing-services .client-tariff-card { padding: 5mm; }
+}
+
+/* Рабочий интерфейс Финлайф PRO */
+:root { --paper:#f1f4f5; --ink:#20312f; --muted:#627671; --line:#dce5e2; --green:#14745b; --green-dark:#124d40; --shadow:0 6px 24px #1b403909; }
+body { font-family:system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5; }
+button, input, select, textarea { font:inherit; }
+button:focus-visible, a:focus-visible, summary:focus-visible { outline:3px solid #368eeb; outline-offset:3px; }
+button:disabled { opacity:.45; cursor:not-allowed; }
+[hidden] { display:none !important; }
+.skip-link { position:fixed; top:-80px; left:20px; z-index:100; background:white; padding:12px 20px; border-radius:10px; }
+.skip-link:focus { top:12px; }
+.topbar { height:84px; padding-inline:32px; grid-template-columns:1fr auto 1fr; }
+.brand-mark { width:44px; height:44px; font-size:26px; font-family:Georgia,serif; border-radius:14px 14px 14px 3px; }
+.brand strong { font-size:20px; letter-spacing:-.6px; }
+.brand em { font-size:10px; letter-spacing:1px; font-style:normal; color:var(--green); background:var(--green-soft); padding:4px 6px; border-radius:5px; vertical-align:middle; margin-left:3px; }
+.brand span { font-size:11px; }
+.tabs { background:#f1f5f3; padding:5px; }
+.tab { min-height:42px; font-size:13px; padding-inline:20px; }
+main { width:min(1360px,calc(100% - 64px)); padding-top:38px; }
+.page-heading { margin-bottom:22px; }
+.page-heading h1 { font-size:clamp(28px,3vw,40px); line-height:1.16; font-weight:650; letter-spacing:-1.4px; margin-block:8px 12px; }
+.page-heading p:not(.eyebrow) { max-width:620px; line-height:1.65; }
+.eyebrow { font-size:10px; letter-spacing:.14em; }
+.panel { border-radius:18px; border-color:var(--line); }
+.method-note { border:1px solid #e6dcc5; background:#fffbf2; color:#725c32; border-radius:12px; margin-bottom:22px; font-size:12px; }
+.method-note summary { padding:12px 16px; cursor:pointer; font-weight:600; }
+.method-note p { margin:0; padding:0 16px 16px; max-width:950px; line-height:1.7; }
+.calculator-grid { grid-template-columns:minmax(0,1fr) 380px; gap:24px; }
+.form-panel { padding:28px 30px; }
+.form-caption { display:flex; justify-content:space-between; color:var(--muted); font-size:10px; letter-spacing:.12em; border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:24px; }
+.section-title > span { width:32px; height:32px; background:#edf5f1; border-radius:50%; }
+.section-title h2 { font-size:18px; font-weight:650; }
+.section-title p { font-size:12px; }
+.field > span { font-size:12px; font-weight:600; margin-bottom:8px; }
+input,select,textarea { background:#fff; min-height:46px; border-radius:8px; font-size:14px; }
+.tariff-row { grid-template-columns:.65fr 1.6fr; }
+.tariff-row .field:last-child { grid-column:1/-1; }
+.rate-hint { background:#f0f7f3; min-height:44px; }
+.tariff-service-set-row { grid-template-columns:1fr; padding-top:8px; }
+.tariff-service-set-preview { background:#f8fbf9; border-color:var(--line); font-size:12px; min-height:40px; }
+.tariff-service-set-preview strong { font-weight:600; }
+.adjustments-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-top:26px; }
+.adjustments-heading h3 { margin:0; font-size:14px; font-weight:650; }
+.text-button { border:0; background:transparent; padding:6px 0; color:var(--green); font-size:12px; text-decoration:underline; text-underline-offset:3px; }
+.coefficient-grid { margin-top:8px; padding-top:10px; border:0; grid-template-columns:1.4fr .8fr .8fr; }
+.coefficient-field > small { font-size:11px; line-height:1.5; }
+.stepper { background:#fff; border-radius:8px; grid-template-columns:34px 1fr 34px; }
+.stepper button { min-height:46px; }
+.service-search { margin-bottom:6px; }
+.filter-status { font-size:12px; color:var(--muted); min-height:18px; margin:8px 0 12px; }
+.summary-panel { top:108px; }
+.summary-top { padding:28px; background:linear-gradient(135deg,#174d41,#116a52); }
+.summary-top .eyebrow { font-size:10px; letter-spacing:.07em; }
+.grand-total { font-size:48px; margin-top:12px; font-variant-numeric:tabular-nums; }
+.summary-client { margin-top:10px; }
+.breakdown { gap:14px; padding-top:24px; }
+.breakdown-line { font-size:13px; }
+.breakdown-group { font-size:10px; }
+.summary-note { font-size:11px; line-height:1.6; background:#f5f8f7; }
+.included-summary { font-size:11px; color:var(--muted); margin:0 24px 18px; }
+.summary-actions { grid-template-columns:1fr; }
+.button { min-height:44px; font-weight:600; font-size:13px; border-radius:8px; }
+.summary-actions .primary { min-height:48px; }
+.directory-filters { display:grid; grid-template-columns:minmax(200px,1fr) 200px auto; gap:14px; align-items:end; padding:20px; background:#fff; border:1px solid var(--line); border-radius:14px; }
+.directory-tabs { margin-top:20px; padding-bottom:5px; }
+.directory-tab { min-height:44px; }
+.directory-view .table-wrap { max-height:65vh; overflow:auto; }
+.directory-view thead { position:sticky; top:0; z-index:1; }
+.directory-view th { white-space:nowrap; background:#f1f6f3; font-size:10px; padding-block:14px; }
+.directory-view tbody tr:hover { background:#f7fbf9; }
+.directory-view td input,.directory-view td select { min-width:130px; font-size:13px; }
+.directory-view td input[data-field="price"],.directory-view td input[data-field="value"] { min-width:110px; width:130px; font-variant-numeric:tabular-nums; }
+.directory-view td input[data-field="name"],.directory-view td input[data-field="service"] { min-width:280px; }
+.directory-view tr.duplicate { background:#fff3ee; }
+.table-heading { padding:22px; }
+@media(min-width:1500px) { .tariff-row { grid-template-columns:.7fr 1.5fr 1fr; } .tariff-row .field:last-child { grid-column:auto; } }
+@media(max-width:1100px) { .topbar { grid-template-columns:1fr auto; padding-inline:24px; } .save-indicator { display:none; } .calculator-grid { grid-template-columns:minmax(0,1fr) 330px; gap:18px; } .form-panel { padding:22px; } .coefficient-grid { grid-template-columns:1fr 1fr; } .coefficient-grid .field:first-child { grid-column:1/-1; } .grand-total { font-size:40px; } }
+@media(max-width:880px) { main { width:min(720px,calc(100% - 32px)); padding-bottom:110px; } .topbar { height:72px; } .tabs { background:#fff; border:1px solid var(--line); } .calculator-grid { grid-template-columns:1fr; } .summary-panel { position:static; } .directory-filters { grid-template-columns:1fr 1fr; } .directory-filters .field:first-child { grid-column:1/-1; } .directory-filters button { white-space:normal; } .desktop-break { display:none; } }
+@media(max-width:580px) { .topbar { padding-inline:16px; } main { padding-top:24px; } .form-panel { padding:20px 16px; } .page-heading h1 { font-size:30px; } .counter-grid { grid-template-columns:1fr; } .counter-grid .field { display:grid; grid-template-columns:1fr 148px; gap:10px; align-items:center; } .counter-grid .field > span { margin:0; } .tariff-row { grid-template-columns:1fr; } .coefficient-grid { grid-template-columns:1fr 1fr; } .directory-filters { padding:14px; gap:10px; } .tab { padding-inline:8px; font-size:12px; } .table-heading { align-items:flex-start; flex-direction:column; gap:12px; } .summary-panel { border-top:4px solid var(--green); } .brand span { display:block; font-size:10px; } .toolbar .button { font-size:12px; } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none !important; scroll-behavior:auto !important; } }
+@media print { .skip-link, .method-note, .directory-filters { display:none !important; } }
+/* Fixed mobile navigation must use the viewport, not a filtered ancestor. */
+@media(max-width:880px) { .topbar { backdrop-filter:none; } .tabs { bottom:max(14px,env(safe-area-inset-bottom)); } }
+
+.tariff-editor { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; }
+.tariff-editor summary { cursor: pointer; color: var(--green-dark); font-weight: 700; }
+.tariff-editor label { display: grid; gap: 6px; margin-top: 14px; font-size: 12px; }
+.tariff-editor input, .tariff-editor textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: white; }
+.tariff-editor textarea { resize: vertical; }
+.tariff-editor button { margin-top: 12px; }
+@media print { .tariff-editor { display: none !important; } }
+
+</style>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Перейти к расчёту</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">ф.</div>
+        <div>
+          <strong>Финлайф <em>PRO</em></strong>
+          <span>Рабочее пространство бухгалтера</span>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="Разделы">
+        <button class="tab active" data-tab="calculator">Калькулятор</button>
+        <button class="tab" data-tab="clientServices">Состав тарифов</button>
+        <button class="tab" data-tab="directory">Справочники</button>
+      </nav>
+      <div class="save-indicator" title="Данные сохраняются только в этом браузере"><span></span> Локальный черновик</div>
+    </header>
+
+    <main id="mainContent">
+      <section id="calculator" class="page active">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Работа с клиентом</p>
+            <h1>Рассчитаем стоимость<br class="desktop-break" /> обслуживания</h1>
+            <p>Параметры слева, прозрачный расчёт справа. Изменения сохраняются в этом браузере.</p>
+          </div>
+          <button id="newCalculation" class="button secondary">Новый расчёт</button>
+        </div>
+
+        <details class="method-note"><summary>Перед расчётом · есть различие с Excel</summary><p>В этом калькуляторе один сотрудник входит в базу и для ИП, и для ООО. В Excel для ООО указано 0. Правило пока сохранено из исходного кода; согласуйте его перед подготовкой предложения. Две цены ИП с НДС обновлены по «КАЛЬКУЛЯТОР.xlsx».</p></details>
+        <div class="calculator-grid">
+          <form id="quoteForm" class="panel form-panel">
+<div class="form-caption"><span>ПАРАМЕТРЫ РАСЧЁТА</span><span>01 — 03</span></div>
+            <div class="section-title"><span>1</span><div><h2>Клиент и тариф</h2><p>Основные параметры обслуживания</p></div></div>
+            <label class="field full"><span>Наименование клиента</span><input id="clientName" type="text" placeholder="Введите название или оставьте пустым" autocomplete="off" /></label>
+            <div class="field-row tariff-row">
+              <label class="field"><span>Форма собственности</span><select id="ownership"></select></label>
+              <label class="field"><span>Система налогообложения</span><select id="taxSystem"></select></label>
+              <label class="field"><span>Тариф</span><select id="tariffPlan"></select></label>
+            </div>
+            <div id="rateHint" class="rate-hint"></div>
+            <div class="tariff-service-set-row">
+              <label class="field"><span>Состав тарифа для КП</span><select id="tariffServiceSet"></select><small>Выберите набор услуг из справочника для этой формы и системы.</small></label>
+              <div id="tariffServiceSetPreview" class="tariff-service-set-preview"></div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section-title"><span>2</span><div><h2>Объём обслуживания</h2><p>Ежемесячные показатели</p></div></div>
+            <div class="counter-grid">
+              <label class="field"><span>Сотрудники</span><div class="stepper"><button type="button" data-step="employees" data-delta="-1">−</button><input id="employees" type="number" min="0" value="0" /><button type="button" data-step="employees" data-delta="1">+</button></div></label>
+              <label class="field"><span>Расчётные счета</span><div class="stepper"><button type="button" data-step="accounts" data-delta="-1">−</button><input id="accounts" type="number" min="0" value="1" /><button type="button" data-step="accounts" data-delta="1">+</button></div></label>
+              <label class="field"><span>ККТ</span><div class="stepper"><button type="button" data-step="kkt" data-delta="-1">−</button><input id="kkt" type="number" min="0" value="0" /><button type="button" data-step="kkt" data-delta="1">+</button></div></label>
+            </div>
+            <div class="adjustments-heading"><h3>Коэффициент и скидка</h3><button type="button" class="text-button" id="editCoefficients">Открыть справочник ↗</button></div><div class="coefficient-grid">
+              <label class="field coefficient-field"><span>Вариант коэффициента</span><select id="coefficientPreset"></select><small>Выберите вариант из редактируемого справочника.</small></label>
+              <label class="field coefficient-field"><span>Коэффициент</span><div class="coefficient-input"><b>×</b><input id="coefficient" type="text" inputmode="decimal" value="1" aria-describedby="coefficientHelp" /></div><small id="coefficientHelp">От 0: меньше 1 снижает, больше 1 повышает базовый тариф.</small></label>
+              <label class="field coefficient-field"><span>Скидка, %</span><div class="coefficient-input"><b>%</b><input id="discountPercent" type="text" inputmode="decimal" value="0" aria-describedby="discountHelp" /></div><small id="discountHelp">Применяется ко всей рассчитанной сумме.</small></label>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section-title"><span>3</span><div><h2>Дополнительные операции</h2><p>Добавьте только то, что нужно клиенту</p></div></div>
+            <label class="field service-search"><span>Найти дополнительную услугу</span><input id="serviceSearch" type="search" placeholder="Например, декларация или кадровый учёт" /></label><p id="serviceSearchStatus" class="filter-status" role="status"></p>
+<div class="service-picker">
+              <select id="serviceSelect" aria-label="Дополнительная операция"></select>
+              <button id="addService" class="button dark" type="button">Добавить</button>
+            </div>
+            <div id="selectedServices" class="selected-services"></div>
+            <label class="field comment-field"><span>Комментарий к расчёту</span><textarea id="calculationComment" rows="4" placeholder="Условия, особенности клиента или пояснение для предложения"></textarea></label>
+          </form>
+
+          <aside class="panel summary-panel" aria-label="Результат расчёта">
+            <div class="summary-top">
+              <p class="eyebrow">Стоимость по выбранным условиям</p>
+              <div id="grandTotal" class="grand-total" aria-live="polite" aria-atomic="true">0 ₽</div>
+              <div id="summaryClient" class="summary-client">Новый клиент</div>
+            </div>
+            <div id="calculationError" class="alert error hidden"></div>
+            <div id="breakdown" class="breakdown"></div>
+            <div id="summaryComment" class="summary-comment hidden"></div>
+            <div class="summary-note">В итог входят выбранные дополнительные услуги. Их периодичность может отличаться от обслуживания. Проверьте состав и период перед отправкой КП.</div><div id="includedSummary" class="included-summary"></div>
+            <div class="summary-actions">
+              <button id="createProposal" class="button primary" type="button">Сформировать КП</button>
+              <button id="copyCalculation" class="button secondary" type="button">Скопировать расчёт</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="directory" class="page">
+        <div class="page-heading compact">
+          <div><p class="eyebrow">Настройки калькулятора</p><h1>Справочники</h1><p>Изменения сохраняются автоматически только в этом браузере.</p></div>
+          <div class="toolbar">
+            <button id="exportData" class="button secondary">Скачать копию</button>
+            <label class="button secondary file-button">Загрузить копию<input id="importData" type="file" accept="application/json" /></label>
+            <button id="resetData" class="button danger-ghost">Сбросить</button>
+          </div>
+        </div>
+
+        <div class="directory-filters"><label class="field"><span>Поиск по открытому справочнику</span><input type="search" id="directorySearch" placeholder="Название, система, категория…" /></label><label class="field"><span>Заполнение цены</span><select id="priceFilter"><option value="all">Все строки</option><option value="missing">Без цены</option><option value="filled">С ценой</option></select></label><button id="clearFilters" class="button secondary" type="button">Сбросить фильтры</button></div><p id="directoryFilterStatus" class="filter-status" role="status"></p>
+        <div class="directory-tabs" aria-label="Справочники">
+          <button class="directory-tab active" data-directory="rates">Базовые тарифы <span id="rateCount"></span></button>
+          <button class="directory-tab" data-directory="coefficients">Коэффициенты <span id="coefficientCount"></span></button>
+          <button class="directory-tab" data-directory="tariffServices">Состав тарифов <span id="tariffServiceCount"></span></button>
+          <button class="directory-tab" data-directory="services">Допоперации <span id="serviceCount"></span></button>
+          <button class="directory-tab" data-directory="settings">Доплаты и лимиты</button>
+        </div>
+        <div id="directoryStatus" class="alert hidden"></div>
+
+        <div id="ratesDirectory" class="directory-view active panel">
+          <div class="table-heading"><div><h2>Базовые тарифы</h2><p>Уникальная строка для каждой формы, системы, тарифа и категории.</p></div><button id="addRate" class="button dark">+ Добавить тариф</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Форма</th><th>Система налогообложения</th><th>Вариант тарифа</th><th>Категория</th><th>Тариф, ₽</th><th></th></tr></thead><tbody id="ratesTable"></tbody></table></div>
+        </div>
+
+        <div id="coefficientsDirectory" class="directory-view panel">
+          <div class="table-heading"><div><h2>Варианты коэффициентов</h2><p>Выбранное значение подставляется в калькулятор автоматически.</p></div><button id="addCoefficientRow" class="button dark">+ Добавить коэффициент</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Название</th><th>Значение</th><th></th></tr></thead><tbody id="coefficientsTable"></tbody></table></div>
+        </div>
+
+        <div id="tariffServicesDirectory" class="directory-view panel">
+          <div class="table-heading"><div><h2>Состав тарифов</h2><p>Задайте отдельный набор услуг для формы собственности, системы налогообложения и тарифа.</p></div><button id="addTariffServiceRow" class="button dark">+ Добавить услугу</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Форма</th><th>Система</th><th>Тариф</th><th>Периодичность</th><th>Услуга</th><th></th></tr></thead><tbody id="tariffServicesTable"></tbody></table></div>
+        </div>
+
+        <div id="servicesDirectory" class="directory-view panel">
+          <div class="table-heading"><div><h2>Дополнительные операции</h2><p>Новые строки сразу появляются в калькуляторе.</p></div><button id="addServiceRow" class="button dark">+ Добавить операцию</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Раздел</th><th>Операция</th><th>Единица</th><th>Цена, ₽</th><th></th></tr></thead><tbody id="servicesTable"></tbody></table></div>
+        </div>
+
+        <div id="settingsDirectory" class="directory-view panel">
+          <div class="table-heading"><div><h2>Доплаты и включённые объёмы</h2><p>Используются для автоматического расчёта.</p></div></div>
+          <div id="settingsGrid" class="settings-grid"></div>
+        </div>
+      </section>
+
+      <section id="clientServices" class="page">
+        <div class="page-heading compact client-services-heading">
+          <div><p class="eyebrow">Материал для клиента</p><h1>Что входит в обслуживание</h1><p>Готовую страницу можно сохранить в PDF или скопировать как текст.</p></div>
+          <div class="toolbar client-services-actions"><button id="copyTariffServices" class="button secondary">Скопировать перечень</button><button id="printTariffServices" class="button primary">Печать / PDF</button></div>
+        </div>
+        <article id="clientServicesDocument" class="client-services-document panel">
+          <header class="client-services-brand"><div><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAI0AAACMCAYAAABBAioAAAAACXBIWXMAAC4jAAAuIwF4pT92AAAgAElEQVR4nOWde3wU1d3/PyckIdldzHV3QzDJ5gLkBgmIiiZIAC/Uilppn6p9KtRXay/6qNRLbW0fqK3VVn2Ep49a+6uKl6p92ioKtQoKRCCIICYISSC3DbnA7iYkkewmZNH5/bEzs2fOnJmd3Wwu9Pm+Xsmc+Z7vmTk7573f7/fMbYkgCPi/KF995rKqytwlBZZ4iwUAPN6TGf3DfRmEsiHUilScfl5Ws2XqtMFtxzZvevN71c5x6/AkEvKvDM3ypy5LLps+b/ngyOnl8VPiyn1nfRmd/e12IAgEEf/xYCGUgq6nbQptcxA/Jd6XMW2GJze14EBl7uWvmM3mTWPziSaH/EtBc9X/XJZcaCu58+yXI9ecPnN6lmfwZBIhUEChBYvKqzCgEIYawhTo6kLbHGSel310zvT5Oy84/9KTAHYCqDWZTP2j+XyTRc55aH765r1zY6fEPtDW23yVx+tOJYQBggHDKCwJsYnITcuHz++DOc4MACiyz5WXOcn5MMUH9EN+L9r7W3HU/RncgyfR0tsA34gXXwhfICE2ASkmKyody7Agq2KPJf68PwHYdC4DdE5C8/T23+d0n+56pP1U69Uu78kkAo4HCcO7sJ5F0men5OHHl/0nPmzdhq1HN8Hn98p9IARIN9twwfmXotA2Fxecf6mqn8f7WtDgPoTdbdtwvL8VcVPikJWUi8yknJGvzF5568zpRX+OzhEZXzmnoPnl5l989/PhgQcOnazNpwGgB58XjsKFhcj/gFdufhcA4BsZxG8+uB/H+1tBVcsFq9mGytwrsSjvSqSb7aq+93hd+KSzBluPvoEerxsAkDHt/MGpsQkH2/uar/vLd6rPGc8z6aFZumFRcvn08o0dAx1f6Rs6Fc9CIA+0ll5Tpw2LpDfFmfHsN/4u2hD4Rgbx83d/iB6vWzMxBoDK3Ctw87wfwBRv4X6mRvchbD36Bg527QUAxE+ZKqSY0k/YzNNffXD5E/eFdYAmQCYtNEvWL0ouzyzf2NRzdMXQ2eEYadD1gKHXab1SFxoWqe62hfdgUd6Vin7tat2KP+17QjsxFlcS48z4Wum3ceXsGzQ/Y4/XhTc/ewl72rbJuhRT+tmUxPS3H17x7ErNhhMskxKae/+65tEj7sP3jJwdjpU8Ag8YIx5HqSMcHT8ppoEhVEWjuw6PfHCf7uyJlsrcK3Hz/B/CFG+B1rFudNfh1YPPoKO/FZLF+UmOkezkvNf+o2rtaq3jNFEyqaD5xaYHf37YdejBgeH+BHqQIwVGmesQ2UbS8YCxmm343iX3odhexu3jwa4a/PeudbrhiZWs5Dw8sPQJzXAljcFbh1/GpsMvK+qKM+Z/fsOc1d8qzizbor2H8ZVJAY3H4yl/4cBzm/559B85bBjRBUYn4dUKR1qwmOPMuKrwa1heeINicAlDw6Mf3ING96GQ4YmVeTMuxZ2LHpLXtY57e18zfr97HXq9LtEOSDPbcEnOsl/cfOEPfs1tNM4yodBs2LYhx+f3vhRLplz2ztHAF4kQJTCyDnpgaHkcovI4bFur2YarCm/AZXlX6sICAM/tewy727YGt0UV1OeM1XLTvB/iCo0chx4Hn38Qv91+Dzr6guEKAGZbyz5sdNdd9+qqiZ1pTRg0D2/59SP5afl3XT7zisT/3PZzNLiOUINPQgIRCTCyV4k344KsS7Eo90oUZwTDEA8USfenj36HPSIwAfAIYxf6MyfGmfHUyrfkda1jLwgCfP5B/G77vTje3yIqAQFAcmLayEVZVbesWnjnX0LvcWxk3KFZv3V9jrOvbVdZZnnWiqIVAID2PifWbnsQQ36fIveQvctogSFAkW0Oiu1lKLKXocg+VwUIvU6Xj/e14E8f/Q4dAy0KUPTCkx5At1f+EvNmVHDr2LHw+Qfx2w/uQYd4bkiQyAGwKO8r761acPeNCQkJ4+51xhWaZ7Y/892tx7Y+G0NIzB9ueJYChMA74sWBzo+xv3MfDnTu0w5PBoDJScmDIzUPNnMGiuxzVZAYKfd4T+Ktwy9hd9tWTVgI+IBwmRGV15bcgmtLV8lq3vFnQ9W6936AXq8LtKkAAQuzl44sL/y3Wwvs43tmedygeeyfj296v3nbdUN+Hy7KvggPVP000AEKHHrZ3t8G34hXXioHNxjGAKA4Yy4IAOu0DFjFs7E8GCKFRQ8UNrdhiiopn1GB2ysf0qxnx0MQBBx11+GxHffK+Q1tcn5yLu5e9PBrSQmpPxovrzPm0LhcruTnDjxf+8/Gd+SZkTnehD/c8EdYpgYSTy1w9OrCaROq7BsZxMHOPdjTthWNnjoVLES2Va6zJwTB2PFk2ayVuHHe7QpdKG8DAM/v+x1qnFshBCOUDM/5ybm4t+p3h81x076dkJBQq7336MiYQuNyucofq378g486PkoNeofA0max4o6Ku1BiLw0bjEiBoXVDfi8+6dyDo+46fNK5B8N+r5zg6sLCgGIoPFGKb867HZfP+rpuEsxb9/kH8cDmb8kXTVl4spLzcF/VY58nxplXJSQkjOn9PGMGzba69xe9sP+FHccHjk/Ry0dKMkpxTeG1uCh7oVg3elC06hpcdWh01+Gou04+1xIEQe1djMJC5H/UuoY8cs1rSDNnqPRasNDrL3wc8DZggAmeRc7DfUseQ2KseU1CQsJ6nW6MSsYEmn2NH39rw+4NLx4fOD4FYBJZacnkJeZ4Ey7KXogS+xyUZsyF1WKLOFz1eF3wDLrQ6DmEHu9JdPS34HhfaxASqi8876IFixYoLCRa4WmWtQz3Lt2g0BmBRZKO/mY89N73A3rxn1T7pRSqguC8mJCQsJrfk9FJ1KE5eOzTHz2+67+eau9zciFRnNklhAsTxHKJvRQAUCImuuqpdGCwG1wBr9HjdaHX55bbK23VQPAuLbD9ZOvB1NH1VDV35Z6q9ZhlK9c8dnrASOWfbrkZPdLZYvEf63XKMy/B7RXrIAjCmIATG82NHTz26Y8e//C/nmrvdwYPpOLoMh4H4NpJdQ3uwyAEaPQc5nir4ICHBCQEMFreJazwRBV4juaaktW6wIDqkwQIIURRBoCslAL0+gLQQKB2JpUFoLZ7L94+8jKuLfn2quHhYUQbnJhobejEiRNVfzv8xlPOfqeso8GQysFKomnHGqsBYwac2WxIgDjAsB5RL0Sp7ImyL6y+fEYFrilZbexAQvKgRFUGgOyUAs3+SssYAmyufwUd/S0ghKwaHh7eaHjnBiQq0Jw4caJ8/Z7fv7ezZaeygqjLqoPLsdOr513IZLcbtOUBxAdGGTbDKNPrrB5AVnIBVl30U+MHU9F/JTzSx9UEnATLMQTYuP9xqW1UwRk1NCdOnHBsa/6g5sO2XfGA2rPQyacsTBLAtgkV0rTqdAGCMWBU/QkFjuKzEsVf2YxKrKlaj8Q4/i0RRkXpdZT91IQdQOdAK95velNqu2p4eDgqM6pRQdPd3Z38YduuHU/vfTYx0DOqkiFFEyb1yHJtA/XMoCvq1IOtsNULSexS1VajHgwoVJ+WzFyJ71/661EDIx8aNpxzIKH7LB2PLfUvw+cflJreNTw8vHq0fRkVNEdc9W8+u+85Bw8GdkBlCeFlWE+isIPyoISqMwIMmHbsgHC/yYASFMrrmOLNuO2SX+HrZXcYPo5GhRCCJk9tyNBE933Y78X2pk1yewAvDA8P62fkISRiaOqaDj26oebpKp/fJ/aUb2ccpuA63yMpKeENPq9ODVBoYGQ9qxMrVLCIdWWZFXjoK69jbmal/sEbhTT11OkDzflcNc6tbG60c3h4ODnSPkQ05e7u7q7asOepn/R4PRo5i1aZKNRGvQwIUdmydtohi3BzGDDrbL28CQpaWidvhgCpJjtWzr1jTGEBgLru3ZCm4YRAMc0WpH6JOkEIrp8acqG2qwZlmZdIm0oCsAlAVST9CNvTdHd3J7908M+bjrjqFXqeN1ENIttA0Vgs8rwMp12o/ChQp76ZSwsQ/W8vx7OQQCi6umgVfrl8bL2LJB8531X1R/5s7HFh1o/11LHeZvHw8PDdkfQjbGhq2vdteePIW0na3oTfTgsmrnkIL6MV3rQAiiHaNlrrgV3TU141LOuWv46vFK3mf+AoyynfSXx2Yo/K8ymTcqnf6i9rXVeN/JkoWTc0NOQIty9hhaeurq7rG9wNFQREf9AlYQafq0cYQKk8ibINXUmHJdY+aBMCGHodQGK8GUsKvo6qgq9HbVZkVF458KgqJIEQMQ7JC7ks9Vkq9Ppc8PkHYYoL3o4iCEISIWQjwgxThqHp6upKBrCxtc+pqtMacM1BVTVm1kNsW2XHfsM4YUnBLKsLAUyayY6ri1djbmbluMMCAJ+d2I2W3roAKwQgiryFAw7oesigdQ20Ymb6XDkvEmXx0NDQ6sTExI1G+xOOp1lHCElamHUh6t0NQa3OgLOiCRa1rmrA2bYWnDw7usADWJ0DBIAxxZsxN7MSS2Z+HecnFeh/sDGUU76T+PMnj8p9hWAAHAoUgfZMjASTarJ+aGhoU2JioqE7/wxB09XVVQ7gLgBYml+F1w/9DUPSVFtLDIYmXrOQnkoDVNrLhIKKV2eKt6A8sxJlMyrHJbENJUP+QTy37+c4c9bLCU1gZkpKcECBJdkd89RhlrVMAoX2NkkA1gEwlBgb9TTy6WdzvBkPX7kOv9/7NNr7nCFDk67ohSZO43Bg4noeBiaQwHR5tn2eDMtkkSH/IJ7eczdOfN6i42HAeBQCIsUo0R5sfsMI5W3uGhoaWp+YmOgM1beQ0HR2dl5PCFlM7yQ31YEnr3kMf6n7X2xp/AeGzmp7HS2YeKFJkzFNsKQ+qb2M1r4T48wotJdjtm0eymdUcu+im2gZ8g/iGQoYGhAWHNajCGIDGSgEbbNSAmGW8TK0rAOwOlT/Qt6E1dnZ6SSE5Eg7490pt6N1J/Z3foz9HR+rzmVo3WilKHPriGYbaG1HhCaGsim0lSE7dSayUwpQaCuflJDQMuQfxB/23o3ugRZ5FkTfbCXf3smsy7ZC4H4cXt3dlz2BmelzRTtBXtJlALmhvI2up+ns7FwNQAZGS5bmL8HS/CUghOCI6zDq3Ufg7HOiva8VPb6eoCHrJcIITWCqaS+SbrbDZpmOdIsdVst0FNrLYLVMh9UyXXc7k026P2/GszVrMHR2UHkIGA/DW5c9D6AKU+ImkGZSv2wpYE7oPGc9gOv1+qnraXbUVnfPshZMlzbMLo3qnH1t8Pl91DNMQI/XjR6vi7LT8E4EyEktgDneDEIIzPEW5KTkgxACqwiJ3r7PFXm/6UW8f+xFALQnEZQeRNYrvQhrE1wKcjkh1ownrn1LtNP0MtJySWJi4k6tvmp6mpeqX73RFJ/I/aryBkNvgHJT8wAApRlzZFu9G8ON6ozse7LLic+bsaXhKbT11gW9i+xBAu6EzWlAJ8GAIr9RJb6ibpaVf2FbI79ZB50TfpqXEXa27f71HHuxVrUhCXcww4Ux0rrJIMP+QWxvfhFP1dwG56k67bwNnBOV9IZoDw1lezrGlc+oCOd4Lfb5fFVatlxPs+Xjfy76tPtQvll85anGhiOScMEIdxuTHRYA+LTrXbzT+FTgAT1A4WH40+qgx5HtmfyG9jqst0mMN6MsM/jSAZ3ZE123DhrehgtNtXPP7wmAtlNO5KXl6h4AoxCMtdc5F+TT7nexs+VF9IlPEyhgQRAG/rRaUoYORVJZ4qIssxKm+GkqUPTgQcDbOEwmk5OtUEHT0dGRfOjE4TIA+KjjQEhoRiP/F+AaPjuIve1/R133u+gfYmABNB9D4c2WwHoagJvPKMsEVxev0u0jDx5CCI6c/OS/F+RWXsvaq3Ka5w+88pDbG5gmv93wDrzMGxsmQiY7GDw5eboZmw7/Fut33YTq1hcxMOxSnpdSzBYhn6Gm8xOtk5eyaBwCOrdZUrASaabgualwjptl6nlLfrvtJ3NZvcrTtPUdv0Uq+/w+bKh5Gg8uuV/dsVGEpbEa8IkGafjsIBrcu7Gv/e84OdiiPDPNehepAtpnfNXnXxCcObHb4YSlxDgzvhrCy+hJdnKBZdrU8+4E8F1ar4Dm4bcez6k98Zn8IxQA8HHHAfx3zVO481Ll6zGiLRMN3Gikwb0bDa49OOrZLV9cZEFhZzyAfH1RAYjmNSNZRwJvxFLp1eVvL3hAvpXDSD7D08XGxKkuyCmg6Rvu/wVrAADbW6rhHuzBz5bcB3ZGNRlkIkCqd+1Gg3sPGt18UFQhRoGNoMpljJ5/UZR1pKpgJeZmVuoluoYkL3X27Ac337bo4RV/3CXpFNAc7++8Ut0sIEdc9bjtjdtxU/k3sKLomlF15FyUIf8g6l270XaqDg2u3TjzhVeRkwBQ5SCBHIXIOlkEyUB54g6geNCAg0j/CdOAsp+RnI+Vc6PzCM1s61zUdu/7IQA+NEd7mrP0vrM+vw/PH3gRWxrewY3l/4al+Uui0rHJKi29tWjtrcUR1x6cFK84KzwKE37YJJb3giTFCnP+hb1iLdty8hUtmZGUjzsW8R+kNBqSaF2a2Q7P4Ikr6HoZmp/877pH9LsTFI/Xg/+peQovHHghcLGyYIl8qeBclSH/ILoGmtHSUyvCQp2lJQbeEszMahS3aRAGGsV5GSkuBfWRSkKcGTdf8EDUb0lNjDen3/Ti4uTXxPcXy9CcPnP6Eu1mfPH5ffhH4z/wztF/wGaxojSjFBdlXYzSjDmTMveRZMg/iM7+ZjT11OKU7yS6B5rR/XmLegpMCXuaXr+sdEF0rqOYKVE2Wp4lZFlcT4g14/aK9ZgxBremppvsmDo98QEADwAUNB0DXYURbVE8GB6vBztbd6C6dQcIAWwWG0rsc2CfFljaLHZYLbbRf4Iw5Kg78M7CY55aDI0MonOgCV0DLRj2e7nnSuiPFKw38i5ytfCuBUleR+++3Ugk87x8/Khi9C8a0JI0sx2uwe7lYKFp7++0R3MS4vF6UN26HYQAfyOvywfPkZoLS7wZVosdNotdBMwOqyVDtJESR+aZI9nlE9n9N7rr5PDR6z2JXt9JEATuheWdPDMSasZqHibDw557GaXkp5Vh9UXGXjRg5C2iWjqP98RsqRwLALc898Mbw+tq5NLe1xYYPPEtV7wB1TpjGkPYOv27+yIReiYcTWHvhYmGLMpbiWtLov+iAZ4MDPcl3LhxseP11dXOGACYQmKuCNVIU6J0ACbTruQbmQTxRiiEN9DSzVMClJAotjOKD5MQa8aqBb8aN2AkmZlecgsgeppeXx//Zf2TUKRvrHSeI7KMYxT7VuyfX1bNlKj8hetxBKW9XjkvrQzfmPsTpJiM3+s8mrBEy5fCl5WACE2P71Sm4R7o9g5jlxRo7ZIeqAnYf7AjUMAjEOlCEhSDL3MiQ6S8CVxLEmLNWDZzNSpyx/dXCgVBwFHPIUAAvCOniwERmtNnBqdF/Uy8PLfExAympjfQ6JdW2aAd64UIDQ4oOwVAgjLsUR6IDm1F9gp8teh2pCSG9yRFJN6EJ9IPlg35vWkAEFv6UGXVuF66oc81nIOiFaLoq9T0xcfgiTsimgbjFO11BHrbYn3GtHx8teh25KaO6sVVIUUPLp/fK7+beWC4LwEIeJpgjybcIxjwAmPRBT1PAiB4G51y2izZ0KAQap0QKgcTN6ZwLJwEWRCApEQ7luSvwvwZy6P4GSPzOsc8hxTr33xhsSPWHG/K8PGeyw4eJ7E8vkmnpmiFByOhRqNs6FOFCEX0STsaHFk44Ulal1RJCQFY5kUBFvbRFF6dXjtJPu3aqwiVxfZ5C2MvnFE+WO2sMdYR6Z/RmcO5ICE+T/BiIt/b0Gd3Ce9sLwWLgiPKyyQn2lGVFx1Y9CQcWCT5tHuvYt0yNakg9tqiq2qNQmOoY9K/KCWYocvi15o3gzKSDFOqkF7ICCgsMKxnocqOlDKUZ141KWEBgD3OrRgSn5iQ5OTpzoLYWen5BcvyF2F76y6Npv8aopXAquAI5W0Eoki7pLaq0KTYqXK1PPMqXOpYiYxpY/PeGyOhyQhIm+vFXzmkTONjpibEAki+ae4N+KjjE8i5DXPgCO/bOpESQV6jmiFqJN0quGgzMbejwxT9LJLCA0nbEttmTMvHvBnLMX/GVUiIHf+3aRmBhLapcW6TZ020JCWkZMQKggC7xYrvXfhtbKh5NoxeILwwwNoggjZGgTUYHnmhlJ0d0RAF4ZGIoT4HJzQlxJplUKafNz5v09J4NlvXlidv17+iOl8kleWr3JfnXwYCYMPeMMAZR9EPL0xeY7Cdbr4i6lTnXyB5lUAlHZogBEApzqhEsb0CxfbJ8ZKkcEHaXP8K18tIEksbL8u/DHmpDvxm5xPw+HqCBxKANO2WFaNOYMNro3sCUidEqcMSXS+ILwEK6ujchj3/Quc3MjggSDHZkZ9WjmJ7BUoyJg6UcODQatPrc+H9JuonMOlNiGXVc0+5KdnYcM2jeO3Q37Gl8Z+R9D26YhQ+Vq2V0LLehgqH7CyIPf9C5zGZ5+WjJKMSpdMrkTlOoScS0QJJC6inah6Cz+/VDE2AwH+W2xxvwvcuvAXXFX0Fr3/2d+zr2B/6xYzavR5dXsNujrcdKkQRDTjoXenmLBqgTD8vHzPTy1GQXo789PIJeTWsnkTDy7x95BV09rdSBuo2RdZyZ6zUiH12SBAE2CxW3HnJD+BbcAt2tH6I7a070d53PPwQZFC0gQiWeXmI5j6ZesV1IVFHxKREEaYEYKa1DDOt5Tg/uQAFkxASWkJ5EyNA1Ti3YXPDK7JnUe8ksJg29bxhhafhwQME3ui5ouhqrCi6Gh5vDz7u3I+PO/ejnvl9BNU+wsxrNDkLAUfQsygTYjYJJhoQzbSVISt5JrKSC3C++HeuSKQPw9EAdfS34i91zyo8Cy80CQIwf8YlJ7nhScvzEEJgs1hxTeHVWFH0VQDAEXc9jriOoL3fCWefEz1ejz4Aio2KSwMhSg9Cbthhwk1inBnZKQVIN2cg3TIds23lSDdnTPoXNxqVSL1MR38rHq++Hz7/oDIacRLg2dZSANgZq+VdpB1owSMtS+0lKLWXKG4IP+I6gh6vGx6fBx6vGz1eN3x+H473O3VDF+sZ6LJeWEqMN4vv4QPSLRmwmjNgjrcgO6UAJnF5Lr+PT0siDUvS8nhfC5748P7ApQJB2qbay0iSlZwLQRCUU+5w4GHraJsSewkICfymttZ78+pdh4OPdihsAIJgiKGfPgAJ2jpS8mGKt2jCoAUHr7/nooQ7K2Kloz8AjG/EC+nuweDGlWUJoHmZCwEEptw7AaylOxMJPOG0FwQBxfYgVEYHngcCC0GoJa/NuSZGQNGDam/7Nrxe+4fgxUgDXiYxzoTZ6aUAoD970jqwRg56OANjZKCNyL86ODQcPGCMhKUt9a9gc/0rFBjM0xYhvExycrIzJi8vbyevU3od1qoLxyacrD+SKaSR/dK6SGch4yWjBcbnH8Qze3+pAkYxY6IgkTyOJBU5ywBgAAieEa4DUEZ3YDQeJByPEW54iUY4kg6klt1kEz1IePXsF+CY5xBe2P8YTvncKq+iBQkdslJNNmnmVAuI79z7zNXQZyQuGvlAkdhG4n3C3Z5RTzOZvA7bL1rPlrXsttS/jCeq78Mpnxtf0l5FIyyxeQ0AXFd0o7S94FsjtjS+T+bYi+QdjWWeYkTC8SLh7FdPxysDEzM11wKEXg/1hTjqrsPGA4+h1xu4Wv2lAgrlozNsWKJdTqrJhgrHMmm1FhCh6RsaOPmZqwFzM4qpDUU3DIVqM9bhiFcHQLdMD8R4wKMFiJGytBzyD+Ivtc9gb/s2GQyBAYbnVYIbVAJEeRmAhsb/5dntf65785tz7EXjkqdEKmOdx+h5GnqgogmQHih66zxwttS/jA+a3pCvUgfqoEp8eV6FF5Zmp5eiwrGM3qcTEKE52tPyMQEgeZuxDkOj8SLh7D+ankZLx9aF+txG68LxOnvbt2LzkZdxyudSDLoRYATGTt4ugBvLFG+CRWpqai2A4E/3FK2rEMzxZmxc+STM8Sb5IOgtjdiM5zISHVs2sq6lC0e0ADIKCwDUON/DlvqX0et1KSAA1DlMKGDY9WuLbsR1xTfRXqY6NTW1CqDeWJ6cmHTE6/fhoR1PKjpo5NsRahmpGN1+qKSQ1oUqG1mndZH+aW1Lrw+S1Djfw8/e+Xe8uP9xFTCCoA8MGFt2XQCQdV4uCwwQuHIAgLpzb9h/ZhcEoeSwqxFP1vwRay69TfXBxno2FK18Kdp5zGjDEu8zGNVLuiH/IN4/9ga2N78B30jg9D/rXdgwE8rD8Nokxppwx6U/43Vvp1SQofH5h98jBD8AgPebA89A3bbg32GZah7VIEZ7GWrfgDYk4eYxWrDQ/YiWN9XSHfPUYa9zK/a2b1XlHCogoASGBSMUMIIA3L/4N0g321QeOzU1dae0b8XPEc79VdWw/wv/1EC+AuSlZOMXS9bAZrGOa44zWttQOrYcqk5LF049EBow2qvUOLdir/M9dA60UiBALrDeJVgW+PUGgLl1wZ3sbElavpWWlib/rqXiJixLvGVr31DfCmknrX3H8R9bHsSaiu9jYdYFYzYrCteb6HmSaHgXenCNeBtevRFh2+x1bkVt9x7UdddwvQq10PQuKjjEf7rAQBsYUXbSKwpPM3ttxfWE4E1C1D+LvDD7Aty24NuGvc5YLI3WhVNvdF1LN1qp7d6D2q4a1HbtUTw3zfMqQGhYFHojHgfArRcogQnYK+DJTUtLc0p1ql/LvfCRqz4fPDM4TQpRgBKea4uW41tlXzc8LTeyHK1tKJ3RspF1o3Va0ut14ainDrVdAY8CKKFgPQrAeA0YgEX8ZyREsR4moFcAU5eWlqZ4q5LqHuHE2ITNp88M3iztnRCxF+Lx2dzwLrY0voul+Zfh5rkrYZ9mm3ThiNWFKgNjmwQf89Shtq1BlxEAAA1YSURBVKsGRz11ykdEpO1w2qjyGKhhoetpexoK2YYBJiHWhDsufRCF1lI9YCAIwka2bypPM3ttRTkh+DTgWfjehi6X2otwef5iXJx1ISxTzaLt+Iaj0XiXaIQltv6opw7H3IcCS+ZNUjxR5S+adUrPQteH8i60LispF7cuuAvZ4j2/wW2pgAGA3PT0dKfi8/K+LRc/cnXXwJmBTF5uQ5dB6cxxJlySfSFK7cVYmH2h/OPrAZvohqNo5DGjgYXW93hd6OhvwVH3IXQMtBiCRE/Y4eC9o4+244HB6mndvOkX49YL74IpzmwEmLfS09PlWZMkXGgW/Oaqnw6ODP7GqLehIZLeKp6b4sDFWReiNKMEpfbiUQFktG605VC64/0t6PW6cFyCpL8FQ2eDyWs0Xi8nMHGHB4qsN5jPAEBCnAnXFd+MKwpWiHptYKjy19LT06kHuwPChWbW2orkqVPiXf4vR+L1vA04OuWSyHWOlBzkpjqQm+JAXmouHCkOWKYGnlqMRjiKVtLb43Whx+tCry+wPN7fil6vCx0DrQokeE6IaK6EEMPhKVhgoZDrOd5ldnopbl1wF9LNNrGNIWDa09PTHbzucqEBgIsfufr5gTMD35G8DaADB+OJYhShSwkdmPYl9mJYpprhSMkFIUCJrRSEAKZ4s/wbUtGApNfnhsfrBkHgNafHxYS0o78VPr8XPT4XesV6+jkrGg5CFXhMhEh9DIk6PAUL4XqdhDgTri++GZeL3iVQpwkJW7/GarVyf21ME5pZayscU6fEH9XyNgB0IaK9DQsKDzQtqEDt25HigCnezPSBqPrkG/Hi+ECbYuDpbYG2p/app6fr5HpFITznoiUCU9DyPHpeRwBQkbMUN5V/D4mxJqqtNjCMbgCAw2q19vP6qAkNAFQ9/rWHTg66f8EOnlY+EypM8WygsoUuOGw99PSMjaQDCxrVVj4wdJ1OveJgaq6EEIPhSa7XSYpnp5fipvLvIispl6oP6VVY3S+tVus6re7qQgMANz37/eZPTxzODxxk9U/s6eU6WmEKbDvO9qIJDl+n7XWohdq7sDDRBzMKrkYvPCnWoYblupKbpAfaKJuwgRkQBMFhs9m4XgYwAE1zc7PjyZr/1/ZB625VfqIXZiR9jMJGP7/hbQsK+xDgSGXKK7C2YOw14WHa0PWsDacYsRgNT1KdBEuhdU5IQLTKjG6DzWa7W6+PIaEBgObm5o2vHnpz1WuHNoVMivXqtPIbhLGuCi06gPBDk3F46DbUQmWjsOWu6IiWZ6F1nKS3wrEU1xXfrLiNIWArMG3D9jS5NpvNqddlo9A4ANQedjcmPVnzJ3i8PSHDFFidvOSf9wlnPRxwuJBoeBAWHrouWE+VGRmL8AQEQUkz2XDFrGtR6VimOjkXaBuZp6HKIb0MYBAaAGhubl4HYC0hBK8eehNvN2yF76wvJCjc/GYswKH2pavT8DrqOhIsU3Wyrapg3LnoCRueEuNMmDdjIa6ceS2yk/O417tG42mo8oAgCA673a6Zy0hiGBoAaG5udgLIIYTAO+LD241b8Xbje0p4AK73AYwnxuImQie5TEjheZaQXofRq+pEBQtEyPDEVXCEE54S40yYP2Mh5mcuxPwZgQfvxxAWqbzGbrfzfwWekXChqQKwgz2B9kHLLnzQtgtHXI26nkJdFwVwxO2AZ8vYGYGHWmgkvkoPRMtowlOayYb5My5GoXWOYVDCXdcpV9vt9iqjfQ0LGgBobm5eD+Au3plZj7cXH3UewPbWXXD2HQ+Z30jtowGOXriCll6rnqmj66lqVUU4zCTGmVBkmyNDwia0tIwWnlBhCUC53W53Gu172NA0NTUlE0JqIYYpgP6m0wD14DN3Az7u/ASHXQ3w+X1hgwOurbYNbwak53XosqZ3YWHi2CnsVcqANt1kQ3ZKLgqtpSi0zkF2ci7PWhYjoPB0EYSsX9rt9nW6nWEkbGgAoKmpqYoQsgNQA6N1naitrx1H3A047KpHW187enw9YYPDD01Bm6COqHSGQpKOdyFMQS88pZtsSDfbUGgLwJGTnCdfLOSJ3hgY9T4Repq6jIyMsH/rMCJoAKCpqWkdIWQtYBwceukd8cHZ344jrnp4fD1wD3pQ72mIMDRphyto2Kr0dB0HDF54yk7OhSnejCJbKUxxZuQk5yE7JRfm+OA7hyM5vtEKUyHqBgBUZWRk1Ibbv4ihAYDm5uZNAK4DtOEI99YG74gP7f3t8Pq9cPa1gyDw2lkAGDor6nS8kKQTVWHBQ9cV2Urk+iLbHABATkouTHFmWC12WHU8h1ExcuzHIhn+pGs/BkcG137zkpseCqe/kowKGjG/2QnxLVrjffdde387vCNecdCJPODeES/a+50UFIGSOd6MnJRcURf8HARAutkGm8XO/ZyhbveMpox1Mnygaz/aTjVv+48r1lwZaR9HBQ0ANDU1lYvgJI3mhqlwIDJib3Q9HF0kNjwxesyjkQzT6+39Thz1NO64ZdHqpUb7ypNRQwOMHzhGy5Gsh9KHqhutjHUy7Oxrw8HuT/b8aNkdo/5toahAAwBNTU3XE0LeBMYGEqOARMvTGKkz0iaaibBWXSh4/vrZ689/euKg7flbXlqBKEjUoAGApqam1YSQF4DRh6DRepfJGJZ4Eur4R+plJN2Gmide29exz7Tj7l2qpwoiFe4PakQqM2fO3NjU1ARCyAvShyAk8rc6sPVSmbaRykbrwtGxdZJE84vGSrS8jM/vxc+3/ezTk6dPFAtAVTT7GFVoRNkkCEIVIeR6AEk0EDxItMDgQSSVefZsHduOV6+lo/W8Op5NuBLpdFtLT+vq3Ufw2K7f9Q6fHYqBgKqda3aFvHIdjkQ1PNHyxOanr76u6MpXASQBkyuPmWxJMBBZmGJ1Pr8Xfzn0+pmtTe9NBVAtANdXRxkYYAyhmbW2IrkgNefBhy+/f/m0qZZSIPqzpGjAMhagjDYR1munBc+HbTux8eALXwydHZ4C4MXqNbtWR7RjAzJm0AABcCxxiQ+sXbrm8hLb7AuAsfEu0YRlsiXCejaCIKDeXY9nPn468ONsAAQBGz788a6Qd9+NRsYUGklmr61YNz9zzvIHFv3oYvoVJcDknzGNdVjiiZFkuN5dj78d/isaPPWgzL/z4Y93bRzr/o0LNAAwe23F6ilkyv/cvnBVzFUFixOB8MJVOHah2urp9PSR2vEk0rPC1W078c9j78DZ1x60CdwTU7Xrx7vCvvgYiYwbNID4GhOQ6uTEabHfmfdvpmX5i8Y9j4kUlPHwOFpj4fF6UN22E+8cfQc+8aeuBfkf3hKA1bvviX7CqyXjCg0AzF5bkQxgEyFYbDWlfnlFweKYK/IXwWZJD3RoksyYRgNJNBJh74gX+zv3o7qtGvUe8VeJqU2J3mX17nt2qd7qMNYy7tBIMnttxd0xMeQhQRCmEUKw8Pz5uDy/EguzLgh0bAJmTOOdBEsijYHX78WBzgPY37UfBzoPBOvVTTYIAtbtuXf8vAstEwYNAMxeW+EgBBsBLCYAQAgscYlYmH0BFp4/H3MzimGODz7APhEzprEOS84+J+rd9djfdQD1bv7vnFND9CKAdXvu3eUc006FkAmFRpLZayuunxIT87IgfGkBUd40NcdWiDkZRZhjL0Sp+JtUYzljCgeSSICSIDnirke9ux4+vw+hhiBuSvxrI1+M/KxmgmGRZFJAAwRynTRT8kunhvpXENAzq0A9Ef/NsQXgyUvNht1iRW5KjmgXOSxjFZbq3fVwez1o72uHs9+JencD1443AlOnTD2bEJvw8sDwwEM1900OWCSZNNBIUriuouq8qdPWnz5zuoz1OtKS1ZXaCmGJNyE3NQc2sxV2ixU2SzpsZqu83bE4PxO4z9kJAKh3N8A74oWzvx0erwc93p6Q7SWhRyAnOacnzZT63MHuTx/de9/E5CyhZNJBI0nhugqH3WL9w+fDny8788VILKD2Oiqg5H/KOkdKNixxgTePmqeakCd6J0lkPCTvxvTF4/XA7e2RK+rdDSGfcQrHMWUnZWOOvXT/lJgpP/7pivt3G285MTJpoaFl+fpv3psQl3DnsZ6WLMAgPBp1dDuFLa89p21wG+wG2Xp9KbYV4cIZC1BiL/67Izn73uzsbGeIJpNGzgloJGlubk7+65Etfzjl67t+f1ftVI+vF4A2PLw6rXpqobLjARDKk7BPfxfbiuBIyUGJrQgltqLPTXGmJwFszMnJcepvafLJOQUNLc3Nzdd7vL0LD544vKRvqO+iz1yNaOtrh+/sUETeRaE34HH0mCm2FcFmTkduikMGBYGTcRsBbAJQm5OTMynzFSNyzkLDivhygvJTQ/2zW045L2k+1WaJISS/re84vCM+uH098IjJqRGAFHWMrdUcSLLN8SY4knNgjjchNyUHVnM67BbF81DVQuA18TsdDoczOp904uVfBhotaWlpcQAoB3A9IcQBwOH29uS4Bz1BI6IOJ+xqbnKO/Bp/jlSLy34EfuZmp8PhGJeLhxMh//LQ8EQEyUEIqdKz05l2O8W/2tzc3HM2zEQq/x+8yfOrFTzDiwAAAABJRU5ErkJggg==" alt="Логотип Финлайф" /><div><strong>Финлайф</strong><span>Бухгалтерское сопровождение бизнеса</span></div></div><p>Состав тарифов</p></header>
+          <div class="client-services-intro"><p class="eyebrow">Бухгалтерское обслуживание</p><h2>Понятный состав работ — без скрытых ожиданий</h2><p>Перечень зависит от формы собственности, системы налогообложения и тарифа. Точный объём и лимиты закрепляются в договоре.</p></div>
+          <div id="clientTariffCards" class="client-tariff-cards"></div>
+          <footer class="client-services-footer"><strong>Финлайф</strong><span>Надёжный учёт для спокойного бизнеса</span></footer>
+        </article>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <div id="proposalModal" class="proposal-modal hidden" role="dialog" aria-modal="true" aria-labelledby="proposalTitle">
+    <div class="proposal-frame" tabindex="-1">
+      <div class="proposal-toolbar">
+        <button id="closeProposal" class="button secondary" type="button">Закрыть</button>
+        <span>Предпросмотр коммерческого предложения</span>
+        <button id="printProposal" class="button primary" type="button">Печать / PDF</button>
+      </div>
+      <article id="proposalDocument" class="proposal-document"></article>
+    </div>
+  </div>
+  <script>
+(function () {
+"use strict";
+const ALL_FORMS = "Все формы";
+const ALL_TAXES = "Все системы";
+
+const defaultData = {
+  rates: [
+    { id: "r01", form: "ИП", tax: "ПСН без НДС", category: "Без сотрудников", price: 8000 },
+    { id: "r02", form: "ИП", tax: "ПСН без НДС", category: "С 1 сотрудником", price: 11000 },
+    { id: "r03", form: "ИП", tax: "АУСН доходы без НДС", category: "Без сотрудников", price: 9000 },
+    { id: "r04", form: "ИП", tax: "АУСН доходы без НДС", category: "С 1 сотрудником", price: 11000 },
+    { id: "r05", form: "ИП", tax: "АУСН доходы-расходы без НДС", category: "Без сотрудников", price: 10500 },
+    { id: "r06", form: "ИП", tax: "АУСН доходы-расходы без НДС", category: "С 1 сотрудником", price: 12000 },
+    { id: "r07", form: "ИП", tax: "УСН доходы без НДС", category: "Без сотрудников", price: 9500 },
+    { id: "r08", form: "ИП", tax: "УСН доходы без НДС", category: "С 1 сотрудником", price: 11500 },
+    { id: "r09", form: "ИП", tax: "УСН доходы с НДС", category: "Без сотрудников", price: null },
+    { id: "r10", form: "ИП", tax: "УСН доходы с НДС", category: "С 1 сотрудником", price: 15500 },
+    { id: "r11", form: "ИП", tax: "УСН доходы-расходы без НДС", category: "Без сотрудников", price: 11500 },
+    { id: "r12", form: "ИП", tax: "УСН доходы-расходы без НДС", category: "С 1 сотрудником", price: 13000 },
+    { id: "r13", form: "ИП", tax: "УСН доходы-расходы с НДС", category: "Без сотрудников", price: null },
+    { id: "r14", form: "ИП", tax: "УСН доходы-расходы с НДС", category: "С 1 сотрудником", price: 17500 },
+    { id: "r15", form: "ИП", tax: "ОСНО с НДС", category: "Без сотрудников", price: 16500 },
+    { id: "r16", form: "ИП", tax: "ОСНО с НДС", category: "С 1 сотрудником", price: 18500 },
+    { id: "r17", form: "ООО", tax: "АУСН доходы без НДС", category: "Базовый", price: 14000 },
+    { id: "r18", form: "ООО", tax: "АУСН доходы-расходы без НДС", category: "Базовый", price: 15500 },
+    { id: "r19", form: "ООО", tax: "УСН доходы без НДС", category: "Базовый", price: 15000 },
+    { id: "r20", form: "ООО", tax: "УСН доходы с НДС", category: "Базовый", price: 20000 },
+    { id: "r21", form: "ООО", tax: "УСН доходы-расходы без НДС", category: "Базовый", price: 16500 },
+    { id: "r22", form: "ООО", tax: "УСН доходы-расходы с НДС", category: "Базовый", price: 22500 },
+    { id: "r23", form: "ООО", tax: "ОСНО с НДС", category: "Базовый", price: 24000 }
+  ],
+  settings: {
+    includedEmployeesOOO: 1,
+    includedAccounts: 1,
+    includedKkt: 0,
+    employeePrice: 1000,
+    accountPrice: 1500,
+    kktPrice: 1000
+  },
+  coefficients: [
+    { id: "c01", name: "Новый бизнес", value: 1 },
+    { id: "c02", name: "Бизнес Крым", value: 1 },
+    { id: "c03", name: "Группа компаний", value: 1 },
+    { id: "c04", name: "Совмещение систем налогообложения", value: 1 },
+    { id: "c05", name: "Сложность", value: 1 }
+  ],
+  tariffServices: [
+    ["Базовый", "Ежемесячно", "Обработка банковских операций в пределах лимита тарифа"],
+    ["Базовый", "Ежемесячно", "Учёт первичных документов в пределах лимита тарифа"],
+    ["Базовый", "Ежемесячно", "Ведение бухгалтерского и налогового учёта"],
+    ["Базовый", "Ежемесячно", "Расчёт налогов, взносов и уведомлений"],
+    ["Базовый", "Ежемесячно", "Ведение КУДиР и налоговых регистров"],
+    ["Базовый", "Ежемесячно", "Закрытие месяца и контроль оборотов"],
+    ["Базовый", "Ежемесячно", "Консультации по текущим вопросам учёта"],
+    ["Базовый", "Ежеквартально", "Подготовка и отправка квартальной налоговой отчётности"],
+    ["Базовый", "Ежеквартально", "Подготовка отчётности по сотрудникам при наличии обязанности"],
+    ["Базовый", "Ежеквартально", "Сверка и контроль состояния ЕНС"],
+    ["Базовый", "Ежеквартально", "Закрытие квартала и итоговый контроль учёта"],
+    ["Всё включено", "Ежемесячно", "Все услуги базового тарифа"],
+    ["Всё включено", "Ежемесячно", "Учёт банка, кассы, эквайринга и корпоративных карт"],
+    ["Всё включено", "Ежемесячно", "Оформление исходящих счетов, актов, накладных и УПД в пределах тарифа"],
+    ["Всё включено", "Ежемесячно", "Расчёт зарплаты и текущий кадровый учёт в пределах тарифа"],
+    ["Всё включено", "Ежемесячно", "Сверки с контрагентами и ведение электронного архива"],
+    ["Всё включено", "Ежемесячно", "Расширенные консультации по текущей деятельности"],
+    ["Всё включено", "Ежеквартально", "Все квартальные услуги базового тарифа"],
+    ["Всё включено", "Ежеквартально", "Подготовка статистической отчётности при наличии обязанности"],
+    ["Всё включено", "Ежеквартально", "Анализ налоговой нагрузки и контроль налоговых рисков"],
+    ["Всё включено", "Ежеквартально", "Краткий итоговый отчёт по результатам квартала"]
+  ].map((item, index) => ({ id: `ts${String(index + 1).padStart(2, "0")}`, form: ALL_FORMS, tax: ALL_TAXES, plan: item[0], frequency: item[1], service: item[2] })),
+  services: [
+    ["Подключение и аудит", "Экспресс-аудит состояния учёта", "организация", 10000],
+    ["Подключение и аудит", "Постановка бухгалтерского и налогового учёта с нуля", "организация", 12500],
+    ["Подключение и аудит", "Перенос/настройка базы 1С и начальных остатков", "база", 19000],
+    ["Восстановление учёта", "Восстановление учёта за месяц до 50 операций", "месяц", 16500],
+    ["Восстановление учёта", "Восстановление банковской выписки или КУДиР", "операция", 250],
+    ["Отчётность", "Подготовка и сдача налоговой декларации", "форма", 4500],
+    ["Отчётность", "Декларация УСН «Доходы» для ИП с КУДиР", "декларация", 7000],
+    ["Отчётность", "Корректирующая декларация/расчёт", "форма", 5000],
+    ["Отчётность", "Нулевой комплект отчётности ИП", "квартал", 3500],
+    ["Отчётность", "Нулевой комплект отчётности ООО", "квартал", 5500],
+    ["Отчётность", "Статистический отчёт с показателями", "форма", 4000],
+    ["Налоги и ФНС", "Ответ на простое требование ФНС", "требование", 5500],
+    ["Налоги и ФНС", "Ответ на требование ФНС с пояснениями и документами", "требование", 16500],
+    ["Налоги и ФНС", "Сверка ЕНС и подготовка заявления/обращения", "сверка", 5500],
+    ["Налоги и ФНС", "Налоговая консультация", "час", 3500],
+    ["Налоги и ФНС", "Письменное налоговое заключение", "вопрос", 20000],
+    ["Зарплата и кадры", "Приём сотрудника на работу", "сотрудник", 2000],
+    ["Зарплата и кадры", "Увольнение сотрудника", "сотрудник", 3000],
+    ["Зарплата и кадры", "Расчёт отпускных, больничных или командировки", "случай", 1500],
+    ["Зарплата и кадры", "Кадровый аудит до 10 сотрудников", "организация", 20000],
+    ["Регистрация и изменения", "Регистрация ИП под ключ", "регистрация", 3500],
+    ["Регистрация и изменения", "Регистрация ООО под ключ", "регистрация", 8500],
+    ["Регистрация и изменения", "Внесение изменений в ЕГРЮЛ/ЕГРИП", "комплект", 5000],
+    ["Регистрация и изменения", "Заявление на получение патента", "заявление", 3000],
+    ["Регистрация и изменения", "Ликвидация ИП", "процедура", 6500],
+    ["Регистрация и изменения", "Добровольная ликвидация ООО", "процедура", 57500],
+    ["Доплаты за объём", "Дополнительная банковская/кассовая операция", "операция", 150],
+    ["Доплаты за объём", "Дополнительный первичный документ", "документ", 300],
+    ["Доплаты за сложность", "Учёт маркетплейса", "площадка/мес", 11500],
+    ["Доплаты за сложность", "Совмещение УСН и ПСН", "режим/мес", 5500],
+    ["Доплаты за сложность", "НДС при УСН", "организация/мес", 13500],
+    ["Доплаты за сложность", "ВЭД или валютные операции", "направление/мес", 13500],
+    ["Доплаты за сложность", "Обособленное подразделение", "подразделение/мес", 6500],
+    ["Доплаты за сложность", "ККТ, эквайринг и товарный учёт", "точка/мес", 7500],
+    ["Управленческий учёт", "Ежемесячный отчёт о движении денежных средств", "отчёт/мес", 16500],
+    ["Управленческий учёт", "ОПиУ и управленческий баланс", "комплект/мес", 35000],
+    ["Управленческий учёт", "Финансовая модель/бюджет на 12 месяцев", "модель", 80000],
+    ["Документы и справки", "Акт сверки с контрагентом", "контрагент", 1000],
+    ["Документы и справки", "Справка, подборка документов или выгрузка базы", "запрос", 3000]
+  ].map((item, index) => ({ id: `s${String(index + 1).padStart(2, "0")}`, group: item[0], name: item[1], unit: item[2], price: item[3] }))
+};
+
+function upgradeData(source) {
+  if (!source || !Array.isArray(source.rates)) return source;
+  if (!Array.isArray(source.coefficients)) source.coefficients = JSON.parse(JSON.stringify(defaultData.coefficients || []));
+  if ((source.schemaVersion || 0) < 2) {
+    source.rates = source.rates.map(rate => ({ ...rate, plan: rate.plan || "Базовый" }));
+    const zeroRates = [
+      { id: "r24", form: "ИП", tax: "Нулёвка", plan: "Базовый", category: "Без сотрудников", price: null },
+      { id: "r25", form: "ИП", tax: "Нулёвка", plan: "Базовый", category: "С 1 сотрудником", price: null },
+      { id: "r26", form: "ООО", tax: "Нулёвка", plan: "Базовый", category: "Базовый", price: null }
+    ];
+    zeroRates.forEach(rate => {
+      if (!source.rates.some(item => rateKey(item) === rateKey(rate))) source.rates.push(rate);
+    });
+
+    const baseRates = source.rates.filter(rate => (rate.plan || "Базовый") === "Базовый");
+    baseRates.forEach(rate => {
+      const allInclusive = { ...rate, id: `all-${rate.id}`, plan: "Всё включено", price: null };
+      if (!source.rates.some(item => rateKey(item) === rateKey(allInclusive))) source.rates.push(allInclusive);
+    });
+  }
+  if (!Array.isArray(source.tariffServices)) source.tariffServices = JSON.parse(JSON.stringify(defaultData.tariffServices || []));
+  source.tariffServices = source.tariffServices.map(item => ({
+    ...item,
+    form: item.form || ALL_FORMS,
+    tax: item.tax || ALL_TAXES
+  }));
+  source.schemaVersion = 4;
+  return source;
+}
+
+upgradeData(defaultData);
+
+const n = value => Math.max(0, Number(value) || 0);
+const factor = value => {
+  const normalized = String(value ?? "").replace(",", ".").trim();
+  if (normalized === "") return 1;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 1;
+};
+const percent = value => {
+  const parsed = Number(String(value ?? "").replace(",", ".").trim());
+  return Number.isFinite(parsed) ? Math.min(100, Math.max(0, parsed)) : 0;
+};
+
+function rateKey(rate) {
+  return [rate.form, rate.tax, rate.plan || "Базовый", rate.category].map(value => String(value || "").trim()).join("|");
+}
+
+function validateRates(rates) {
+  const seen = new Set();
+  const duplicates = new Set();
+  rates.forEach(rate => {
+    const key = rateKey(rate);
+    if (!rate.form || !rate.tax || !rate.category) return;
+    if (seen.has(key)) duplicates.add(key);
+    seen.add(key);
+  });
+  return { valid: duplicates.size === 0, duplicates: [...duplicates] };
+}
+
+function getTaxOptions(rates, form) {
+  return [...new Set(rates.filter(rate => rate.form === form).map(rate => rate.tax).filter(Boolean))];
+}
+
+function getPlanOptions(rates, form, tax) {
+  return [...new Set(rates.filter(rate => rate.form === form && rate.tax === tax).map(rate => rate.plan || "Базовый").filter(Boolean))];
+}
+
+function tariffServiceSetKey(form = ALL_FORMS, tax = ALL_TAXES) {
+  return `${encodeURIComponent(form || ALL_FORMS)}|${encodeURIComponent(tax || ALL_TAXES)}`;
+}
+
+function parseTariffServiceSetKey(key) {
+  try {
+    const [form, tax] = String(key || "").split("|").map(decodeURIComponent);
+    return { form: form || ALL_FORMS, tax: tax || ALL_TAXES };
+  } catch (_) {
+    return { form: ALL_FORMS, tax: ALL_TAXES };
+  }
+}
+
+function getTariffServiceSets(source, plan, form) {
+  const tariffServices = Array.isArray(source?.tariffServices) ? source.tariffServices : [];
+  const seen = new Map();
+  tariffServices
+    .filter(item => item.plan === plan && (!form || item.form === form || item.form === ALL_FORMS))
+    .forEach(item => {
+      const itemForm = item.form || ALL_FORMS;
+      const itemTax = item.tax || ALL_TAXES;
+      const key = tariffServiceSetKey(itemForm, itemTax);
+      if (!seen.has(key)) seen.set(key, { key, form: itemForm, tax: itemTax });
+    });
+  return [...seen.values()].sort((a, b) => {
+    const formRank = item => item.form === form ? 0 : item.form === ALL_FORMS ? 1 : 2;
+    return formRank(a) - formRank(b) || a.tax.localeCompare(b.tax, "ru");
+  });
+}
+
+function getTariffServiceGroups(source, plan, setKey = tariffServiceSetKey()) {
+  const tariffServices = Array.isArray(source?.tariffServices) ? source.tariffServices : [];
+  const selected = parseTariffServiceSetKey(setKey);
+  const forPlan = tariffServices.filter(item => item.plan === plan && (item.form || ALL_FORMS) === selected.form && (item.tax || ALL_TAXES) === selected.tax && item.service?.trim());
+  return {
+    monthly: forPlan.filter(item => item.frequency === "Ежемесячно"),
+    quarterly: forPlan.filter(item => item.frequency === "Ежеквартально")
+  };
+}
+
+function computeQuote(data, input) {
+  const employees = Math.floor(n(input.employees));
+  const accounts = Math.floor(n(input.accounts));
+  const kkt = Math.floor(n(input.kkt));
+  const coefficient = factor(input.coefficient ?? input.increaseFactor);
+  const discountPercent = percent(input.discountPercent);
+  const plan = input.plan || "Базовый";
+  const category = input.form === "ИП" ? (employees > 0 ? "С 1 сотрудником" : "Без сотрудников") : "Базовый";
+  const matches = data.rates.filter(rate => rate.form === input.form && rate.tax === input.tax && (rate.plan || "Базовый") === plan && rate.category === category);
+  if (matches.length !== 1 || matches[0].price === null || matches[0].price === "" || !Number.isFinite(Number(matches[0].price))) {
+    return { valid: false, error: matches.length > 1 ? "В справочнике найдено несколько одинаковых тарифов." : "Для выбранных условий не заполнен базовый тариф.", category };
+  }
+
+  const base = n(matches[0].price);
+  const adjustedBase = Math.round(base * coefficient);
+  const includedEmployees = employees > 0 ? 1 : 0;
+  const extraEmployees = Math.max(0, employees - includedEmployees);
+  const extraAccounts = Math.max(0, accounts - Math.floor(n(data.settings.includedAccounts)));
+  const extraKkt = Math.max(0, kkt - Math.floor(n(data.settings.includedKkt)));
+  const employeesCost = extraEmployees * n(data.settings.employeePrice);
+  const accountsCost = extraAccounts * n(data.settings.accountPrice);
+  const kktCost = extraKkt * n(data.settings.kktPrice);
+  const services = (input.services || []).map(item => {
+    const service = data.services.find(entry => entry.id === item.id);
+    if (!service) return null;
+    const quantity = Math.floor(n(item.quantity));
+    return { ...service, quantity, total: quantity * n(service.price) };
+  }).filter(item => item && item.quantity > 0);
+  const servicesCost = services.reduce((sum, item) => sum + item.total, 0);
+  const subtotal = adjustedBase + employeesCost + accountsCost + kktCost + servicesCost;
+  const discountAmount = Math.round(subtotal * discountPercent / 100);
+  return {
+    valid: true,
+    category,
+    plan,
+    base,
+    coefficient,
+    discountPercent,
+    discountAmount,
+    adjustedBase,
+    includedEmployees,
+    extraEmployees,
+    extraAccounts,
+    extraKkt,
+    employeesCost,
+    accountsCost,
+    kktCost,
+    services,
+    servicesCost,
+    subtotal,
+    total: subtotal - discountAmount
+  };
+}
+
+const DATA_KEY = "finlife-pro-interface-data-v1";
+const FORM_KEY = "finlife-pro-interface-form-v1";
+const clone = value => JSON.parse(JSON.stringify(value));
+// Только две цены, явно дополненные пользователем в актуальной книге.
+const initialData = clone(defaultData);
+initialData.rates.find(rate => rate.id === "r09").price = 13500;
+initialData.rates.find(rate => rate.id === "r13").price = 15500;
+
+// Убираем пустые строки, ошибочно добавленные в справочник вместо вкладки тарифов.
+function removeMisplacedTariffDrafts(source) {
+  source.rates = source.rates.filter(rate => !(
+    /^new-tariff-draft-[12]$/.test(rate.id) &&
+    !rate.form && !rate.tax && !rate.category && rate.price == null &&
+    /^Новый тариф [12]$/.test(rate.plan)
+  ));
+  delete source.tariffDraftsAddedV1;
+  return source;
+}
+function ensureEditableTariffs(source) {
+  if (!Array.isArray(source.editableTariffs)) source.editableTariffs = [
+    { id: "draft-1", name: "Новый тариф 1", monthly: ["Обработка первичных документов", "Сверка банковских операций", "Консультация по текущим вопросам"], quarterly: ["Подготовка квартальной отчётности", "Сверка расчётов с бюджетом"] },
+    { id: "draft-2", name: "Новый тариф 2", monthly: ["Ведение бухгалтерского и налогового учёта", "Расчёт заработной платы", "Подготовка управленческой сводки"], quarterly: ["Проверка учёта перед сдачей отчётности", "Обсуждение результатов квартала"] }
+  ];
+  return source;
+}
+const money = value => `${new Intl.NumberFormat("ru-RU").format(Number(value) || 0)} ₽`;
+const uid = prefix => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+
+let data = ensureEditableTariffs(loadData());
+let selectedServices = [];
+let toastTimer;
+
+function loadData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DATA_KEY));
+    if (saved?.rates && saved?.services && saved?.settings) {
+      saved.settings.includedEmployeesOOO = 1;
+      return removeMisplacedTariffDrafts(upgradeData(saved));
+    }
+  } catch (_) {}
+  return clone(initialData);
+}
+
+function saveData(message = "Сохранено") {
+  data.settings.includedEmployeesOOO = 1;
+  upgradeData(data);
+  localStorage.setItem(DATA_KEY, JSON.stringify(data));
+  renderAll();
+  toast(message);
+}
+
+function toast(message) {
+  const element = $("#toast");
+  element.textContent = message;
+  element.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => element.classList.remove("show"), 1700);
+}
+
+function currentInput() {
+  return {
+    clientName: $("#clientName").value.trim(),
+    form: $("#ownership").value,
+    tax: $("#taxSystem").value,
+    plan: $("#tariffPlan").value,
+    tariffServiceSet: $("#tariffServiceSet").value,
+    employees: $("#employees").value,
+    accounts: $("#accounts").value,
+    kkt: $("#kkt").value,
+    coefficientPreset: $("#coefficientPreset").value,
+    coefficient: $("#coefficient").value,
+    discountPercent: $("#discountPercent").value,
+    comment: $("#calculationComment").value.trim(),
+    services: selectedServices
+  };
+}
+
+function saveForm() {
+  localStorage.setItem(FORM_KEY, JSON.stringify(currentInput()));
+}
+
+function renderOwnership() {
+  const select = $("#ownership");
+  const current = select.value || "ООО";
+  const forms = [...new Set(data.rates.map(rate => rate.form).filter(Boolean))];
+  select.innerHTML = forms.map(form => `<option value="${escapeHtml(form)}">${escapeHtml(form)}</option>`).join("");
+  select.value = forms.includes(current) ? current : forms[0] || "";
+}
+
+function renderTaxes(preferred) {
+  const select = $("#taxSystem");
+  const current = preferred ?? select.value;
+  const options = getTaxOptions(data.rates, $("#ownership").value);
+  select.innerHTML = options.map(tax => `<option value="${escapeHtml(tax)}">${escapeHtml(tax)}</option>`).join("");
+  select.value = options.includes(current) ? current : options[0] || "";
+}
+
+function renderPlans(preferred) {
+  const select = $("#tariffPlan");
+  const current = preferred ?? select.value;
+  const options = getPlanOptions(data.rates, $("#ownership").value, $("#taxSystem").value);
+  select.innerHTML = options.map(plan => `<option value="${escapeHtml(plan)}">${escapeHtml(plan)}</option>`).join("");
+  select.value = options.includes(current) ? current : options[0] || "";
+}
+
+function tariffServiceSetLabel(set) {
+  if (!set) return "Состав не выбран";
+  if (set.form === ALL_FORMS && set.tax === ALL_TAXES) return "Общий состав для всех систем";
+  if (set.form === ALL_FORMS) return `${set.tax} · все формы`;
+  if (set.tax === ALL_TAXES) return `${set.form} · все системы`;
+  return `${set.form} · ${set.tax}`;
+}
+
+function renderTariffServiceSet(preferred) {
+  const select = $("#tariffServiceSet");
+  const form = $("#ownership").value;
+  const tax = $("#taxSystem").value;
+  const plan = $("#tariffPlan").value;
+  const sets = getTariffServiceSets(data, plan, form);
+  if (!sets.length) {
+    select.innerHTML = `<option value="">Нет подходящего состава</option>`;
+    select.value = "";
+    renderTariffServiceSetPreview();
+    return;
+  }
+  select.innerHTML = sets.map(set => `<option value="${escapeAttr(set.key)}">${escapeHtml(tariffServiceSetLabel(set))}</option>`).join("");
+  const preferredSet = sets.find(set => set.key === preferred);
+  const automatic = sets.find(set => set.form === form && set.tax === tax)
+    || sets.find(set => set.form === ALL_FORMS && set.tax === tax)
+    || sets.find(set => set.form === form && set.tax === ALL_TAXES)
+    || sets.find(set => set.form === ALL_FORMS && set.tax === ALL_TAXES)
+    || sets[0];
+  select.value = (preferredSet || automatic).key;
+  renderTariffServiceSetPreview();
+}
+
+function renderTariffServiceSetPreview() {
+  const preview = $("#tariffServiceSetPreview");
+  const setKey = $("#tariffServiceSet").value;
+  if (!setKey) {
+    preview.innerHTML = `<strong>Состав не заполнен</strong><span>Добавьте услуги в справочнике «Состав тарифов».</span>`;
+    preview.classList.add("empty");
+    return;
+  }
+  const groups = getTariffServiceGroups(data, $("#tariffPlan").value, setKey);
+  preview.innerHTML = `<strong>${groups.monthly.length + groups.quarterly.length} услуг войдут в КП</strong><span>Ежемесячно: ${groups.monthly.length} · Ежеквартально: ${groups.quarterly.length}</span>`;
+  preview.classList.remove("empty");
+}
+
+function renderCoefficientPicker(preferred) {
+  const select = $("#coefficientPreset");
+  const current = preferred ?? select.value;
+  select.innerHTML = `<option value="">Без выбранного варианта</option>` + data.coefficients.map(item => `<option value="${item.id}">${escapeHtml(item.name)} · × ${formatFactor(item.value)}</option>`).join("");
+  select.value = data.coefficients.some(item => item.id === current) ? current : "";
+}
+
+function renderServicePicker() {
+  const query = ($("#serviceSearch")?.value || "").trim().toLocaleLowerCase("ru");
+  const options = [...data.services].filter(item => `${item.group} ${item.name}`.toLocaleLowerCase("ru").includes(query)).sort((a, b) => a.group.localeCompare(b.group, "ru") || a.name.localeCompare(b.name, "ru"));
+  $("#serviceSearchStatus").textContent = query ? `Найдено услуг: ${options.length}` : `В каталоге ${options.length} услуг`;
+  $("#serviceSelect").innerHTML = `<option value="">Выберите операцию…</option>` + options.map(service => `<option value="${service.id}">${escapeHtml(service.group)} · ${escapeHtml(service.name)} — ${money(service.price)}</option>`).join("");
+}
+
+function renderSelectedServices() {
+  const container = $("#selectedServices");
+  selectedServices = selectedServices.filter(item => data.services.some(service => service.id === item.id));
+  container.innerHTML = selectedServices.map(item => {
+    const service = data.services.find(entry => entry.id === item.id);
+    return `<div class="service-line" data-id="${item.id}">
+      <div class="name">${escapeHtml(service.name)}<small>${escapeHtml(service.unit)} · ${money(service.price)}</small></div>
+      <input type="number" min="1" value="${Math.max(1, Number(item.quantity) || 1)}" aria-label="Количество" />
+      <div class="line-total">${money((Number(item.quantity) || 1) * service.price)}</div>
+      <button class="icon-button remove-selected" type="button" aria-label="Удалить">×</button>
+    </div>`;
+  }).join("") || `<div class="summary-note" style="margin:0">Дополнительные операции не выбраны.</div>`;
+}
+
+function renderQuote() {
+  const input = currentInput();
+  const quote = computeQuote(data, input);
+  $("#createProposal").disabled = !quote.valid;
+  $("#copyCalculation").disabled = !quote.valid;
+  $("#includedSummary").textContent = quote.valid ? `В базе: сотрудников — ${quote.includedEmployees}, счетов — ${data.settings.includedAccounts}, ККТ — ${data.settings.includedKkt}` : "";
+  $("#summaryClient").textContent = input.clientName || "Новый клиент";
+  const error = $("#calculationError");
+  const hint = $("#rateHint");
+  if (!quote.valid) {
+    $("#grandTotal").textContent = "—";
+    error.textContent = quote.error;
+    error.classList.remove("hidden");
+    hint.innerHTML = `<span>${escapeHtml(quote.error)}</span><strong>Откройте справочник</strong>`;
+    hint.classList.add("error");
+    $("#breakdown").innerHTML = "";
+    $("#summaryComment").classList.add("hidden");
+    saveForm();
+    return;
+  }
+  error.classList.add("hidden");
+  hint.classList.remove("error");
+  hint.innerHTML = `<span>${escapeHtml(quote.plan)} · ${escapeHtml(quote.category)}</span><strong>${money(quote.base)}</strong>`;
+  $("#grandTotal").textContent = money(quote.total);
+  const coefficientPreset = data.coefficients.find(item => item.id === input.coefficientPreset);
+  const coefficientLabel = coefficientPreset?.name || "Коэффициент";
+  const standardLines = [
+    ["Базовый тариф", quote.base, true],
+    ...(quote.coefficient !== 1 || coefficientPreset ? [[escapeHtml(coefficientLabel), `× ${formatFactor(quote.coefficient)}`, true, true]] : []),
+    ...(quote.adjustedBase !== quote.base ? [["База с учётом коэффициентов", quote.adjustedBase, true]] : []),
+    [`Сотрудники сверх включённых: ${quote.extraEmployees}`, quote.employeesCost],
+    [`Расчётные счета сверх включённых: ${quote.extraAccounts}`, quote.accountsCost],
+    [`ККТ сверх включённых: ${quote.extraKkt}`, quote.kktCost]
+  ];
+  let html = `<div class="breakdown-group">Абонентское обслуживание</div>` + standardLines.map(([label, value, always, isText]) => value || always ? `<div class="breakdown-line"><span>${label}</span><strong>${isText ? value : money(value)}</strong></div>` : "").join("");
+  if (quote.services.length) {
+    html += `<div class="breakdown-group">Дополнительные операции</div>`;
+    html += quote.services.map(service => `<div class="breakdown-line"><span>${escapeHtml(service.name)} × ${service.quantity}</span><strong>${money(service.total)}</strong></div>`).join("");
+  }
+  html += `<div class="breakdown-line subtotal"><span>Итого до скидки</span><strong>${money(quote.subtotal)}</strong></div>`;
+  html += `<div class="breakdown-line discount"><span>Скидка · ${formatFactor(quote.discountPercent)}%</span><strong>− ${money(quote.discountAmount)}</strong></div>`;
+  html += `<div class="breakdown-line total"><span>Итого после скидки</span><strong>${money(quote.total)}</strong></div>`;
+  $("#breakdown").innerHTML = html;
+  const comment = $("#summaryComment");
+  comment.textContent = input.comment ? `Комментарий: ${input.comment}` : "";
+  comment.classList.toggle("hidden", !input.comment);
+  saveForm();
+}
+
+function renderRatesTable() {
+  const validation = validateRates(data.rates);
+  const duplicates = new Set(validation.duplicates);
+  $("#rateCount").textContent = data.rates.length;
+  $("#ratesTable").innerHTML = data.rates.map(rate => `<tr data-id="${rate.id}" class="${duplicates.has(rateKey(rate)) ? "duplicate" : ""}">
+    <td><select data-field="form"><option value="" ${!rate.form ? "selected" : ""}>Не задана</option><option ${rate.form === "ИП" ? "selected" : ""}>ИП</option><option ${rate.form === "ООО" ? "selected" : ""}>ООО</option></select></td>
+    <td><input data-field="tax" value="${escapeAttr(rate.tax)}" /></td>
+    <td><input data-field="plan" value="${escapeAttr(rate.plan || "Базовый")}" /></td>
+    <td><input data-field="category" value="${escapeAttr(rate.category)}" /></td>
+    <td><input data-field="price" type="number" min="0" value="${rate.price ?? ""}" placeholder="Не задан" /></td>
+    <td><button class="icon-button delete-rate" aria-label="Удалить">×</button></td>
+  </tr>`).join("");
+  const status = $("#directoryStatus");
+  if (!validation.valid) {
+    status.textContent = "Есть повторяющиеся тарифы. Форма, система, вариант тарифа и категория должны быть уникальны.";
+    status.className = "alert error";
+  } else {
+    status.className = "alert hidden";
+  }
+}
+
+function renderCoefficientsTable() {
+  $("#coefficientCount").textContent = data.coefficients.length;
+  $("#coefficientsTable").innerHTML = data.coefficients.map(item => `<tr data-id="${item.id}">
+    <td><input data-field="name" value="${escapeAttr(item.name)}" /></td>
+    <td><input data-field="value" type="number" min="0" step="0.01" value="${item.value ?? 1}" /></td>
+    <td><button class="icon-button delete-coefficient" aria-label="Удалить">×</button></td>
+  </tr>`).join("");
+}
+
+function renderTariffServicesTable() {
+  $("#tariffServiceCount").textContent = data.tariffServices.length;
+  const knownForms = [ALL_FORMS, ...new Set(data.rates.map(rate => rate.form).filter(Boolean))];
+  const knownTaxes = [ALL_TAXES, ...new Set(data.rates.map(rate => rate.tax).filter(Boolean))];
+  const knownPlans = [...new Set(data.rates.map(rate => rate.plan || "Базовый").filter(Boolean))];
+  $("#tariffServicesTable").innerHTML = data.tariffServices.map(item => {
+    const forms = knownForms.includes(item.form) ? knownForms : [...knownForms, item.form].filter(Boolean);
+    const taxes = knownTaxes.includes(item.tax) ? knownTaxes : [...knownTaxes, item.tax].filter(Boolean);
+    const plans = knownPlans.includes(item.plan) ? knownPlans : [...knownPlans, item.plan].filter(Boolean);
+    const formOptions = forms.map(form => `<option value="${escapeAttr(form)}" ${form === item.form ? "selected" : ""}>${escapeHtml(form)}</option>`).join("");
+    const taxOptions = taxes.map(tax => `<option value="${escapeAttr(tax)}" ${tax === item.tax ? "selected" : ""}>${escapeHtml(tax)}</option>`).join("");
+    const planOptions = plans.map(plan => `<option value="${escapeAttr(plan)}" ${plan === item.plan ? "selected" : ""}>${escapeHtml(plan)}</option>`).join("");
+    return `<tr data-id="${item.id}">
+    <td><select data-field="form">${formOptions}</select></td>
+    <td><select data-field="tax">${taxOptions}</select></td>
+    <td><select data-field="plan">${planOptions}</select></td>
+    <td><select data-field="frequency"><option ${item.frequency === "Ежемесячно" ? "selected" : ""}>Ежемесячно</option><option ${item.frequency === "Ежеквартально" ? "selected" : ""}>Ежеквартально</option></select></td>
+    <td><input data-field="service" value="${escapeAttr(item.service)}" /></td>
+    <td><button class="icon-button delete-tariff-service" aria-label="Удалить">×</button></td>
+  </tr>`;
+  }).join("");
+}
+
+function allTariffServiceSets() {
+  const seen = new Map();
+  data.tariffServices.forEach(item => {
+    const form = item.form || ALL_FORMS;
+    const tax = item.tax || ALL_TAXES;
+    const plan = item.plan || "Базовый";
+    const key = `${plan}::${tariffServiceSetKey(form, tax)}`;
+    if (!seen.has(key)) seen.set(key, { key: tariffServiceSetKey(form, tax), form, tax, plan });
+  });
+  return [...seen.values()].sort((a, b) => a.plan.localeCompare(b.plan, "ru") || a.form.localeCompare(b.form, "ru") || a.tax.localeCompare(b.tax, "ru"));
+}
+
+function renderClientServices() {
+  const sets = allTariffServiceSets();
+  $("#clientTariffCards").innerHTML = sets.map((set, index) => {
+    const { monthly, quarterly } = getTariffServiceGroups(data, set.plan, set.key);
+    const list = items => items.length ? `<ul>${items.map(item => `<li>${escapeHtml(item.service)}</li>`).join("")}</ul>` : `<p class="empty-service-list">Перечень пока не заполнен.</p>`;
+    const title = data.tariffCardNames?.[`${set.plan}::${set.key}`] ?? set.plan;
+    return `<section data-existing-tariff="${index}" class="client-tariff-card ${set.plan === "Всё включено" ? "featured" : ""}"><div class="client-tariff-title"><span>${String(index + 1).padStart(2, "0")}</span><div><p>Тариф</p><h3>${escapeHtml(title)}</h3><small>${escapeHtml(tariffServiceSetLabel(set))}</small></div></div><div class="client-frequency"><h4>Ежемесячно</h4>${list(monthly)}</div><div class="client-frequency"><h4>Ежеквартально</h4>${list(quarterly)}</div>
+      <details class="tariff-editor"><summary>Редактировать тариф</summary>
+        <label>Название карточки<input data-draft-field="name" value="${escapeAttr(title)}" /></label>
+        <label>Ежемесячно — одна услуга в строке<textarea data-draft-field="monthly" rows="6">${escapeHtml(monthly.map(item => item.service).join("\n"))}</textarea></label>
+        <label>Ежеквартально — одна услуга в строке<textarea data-draft-field="quarterly" rows="5">${escapeHtml(quarterly.map(item => item.service).join("\n"))}</textarea></label>
+        <button type="button" class="button secondary" data-save-existing>Сохранить тариф</button>
+      </details></section>`;
+  }).join("");
+  ensureEditableTariffs(data);
+  $("#clientTariffCards").innerHTML += data.editableTariffs.map((tariff, index) => {
+    const list = items => items.length ? `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : `<p class="empty-service-list">Перечень пока не заполнен.</p>`;
+    return `<section class="client-tariff-card" data-editable-tariff="${escapeAttr(tariff.id)}">
+      <div class="client-tariff-title"><span>${String(sets.length + index + 1).padStart(2, "0")}</span><div><p>Тариф</p><h3>${escapeHtml(tariff.name)}</h3><small>Временный состав — для редактирования</small></div></div>
+      <div class="client-frequency"><h4>Ежемесячно</h4>${list(tariff.monthly)}</div>
+      <div class="client-frequency"><h4>Ежеквартально</h4>${list(tariff.quarterly)}</div>
+      <details class="tariff-editor"><summary>Редактировать тариф</summary>
+        <label>Название<input data-draft-field="name" value="${escapeAttr(tariff.name)}" /></label>
+        <label>Ежемесячно — одна услуга в строке<textarea data-draft-field="monthly" rows="5">${escapeHtml(tariff.monthly.join("\n"))}</textarea></label>
+        <label>Ежеквартально — одна услуга в строке<textarea data-draft-field="quarterly" rows="4">${escapeHtml(tariff.quarterly.join("\n"))}</textarea></label>
+        <button type="button" class="button secondary" data-save-draft>Сохранить тариф</button>
+      </details>
+    </section>`;
+  }).join("");
+}
+
+function renderServicesTable() {
+  $("#serviceCount").textContent = data.services.length;
+  $("#servicesTable").innerHTML = data.services.map(service => `<tr data-id="${service.id}">
+    <td><input data-field="group" value="${escapeAttr(service.group)}" /></td>
+    <td><input data-field="name" value="${escapeAttr(service.name)}" /></td>
+    <td><input data-field="unit" value="${escapeAttr(service.unit)}" /></td>
+    <td><input data-field="price" type="number" min="0" value="${service.price ?? 0}" /></td>
+    <td><button class="icon-button delete-service" aria-label="Удалить">×</button></td>
+  </tr>`).join("");
+}
+
+const settingDefinitions = [
+  ["includedEmployeesOOO", "Сотрудников включено при наличии", "Один сотрудник всегда входит в базовый тариф для ИП и ООО", "шт.", true],
+  ["includedAccounts", "Расчётных счетов включено", "Одинаково для ИП и ООО", "шт."],
+  ["includedKkt", "ККТ включено", "Доплата начисляется сверх этого количества", "шт."],
+  ["employeePrice", "Цена дополнительного сотрудника", "За сотрудника в месяц", "₽"],
+  ["accountPrice", "Цена дополнительного счёта", "За расчётный счёт в месяц", "₽"],
+  ["kktPrice", "Цена дополнительной ККТ", "За кассу в месяц", "₽"]
+];
+
+function renderSettings() {
+  $("#settingsGrid").innerHTML = settingDefinitions.map(([key, label, note, suffix, locked]) => `<div class="setting-card"><label><span><strong>${label}</strong><small>${note}</small></span><div><input data-setting="${key}" type="number" min="0" value="${locked ? 1 : (data.settings[key] ?? 0)}" ${locked ? "disabled" : ""} /><small style="text-align:right">${suffix}</small></div></label></div>`).join("");
+}
+
+function renderAll() {
+  const currentTax = $("#taxSystem")?.value;
+  const currentPlan = $("#tariffPlan")?.value;
+  const currentTariffServiceSet = $("#tariffServiceSet")?.value;
+  const currentCoefficient = $("#coefficientPreset")?.value;
+  renderOwnership();
+  renderTaxes(currentTax);
+  renderPlans(currentPlan);
+  renderTariffServiceSet(currentTariffServiceSet);
+  renderCoefficientPicker(currentCoefficient);
+  renderServicePicker();
+  renderSelectedServices();
+  renderQuote();
+  renderRatesTable();
+  renderCoefficientsTable();
+  renderTariffServicesTable();
+  renderServicesTable();
+  renderSettings();
+  renderClientServices();
+  applyDirectoryFilters();
+  labelTableFields();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+}
+function escapeAttr(value) { return escapeHtml(value); }
+function formatFactor(value) { return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 3 }).format(value); }
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); return; }
+  } catch (_) { /* Для локального HTML используем копирование выделенного текста. */ }
+  const previous = document.activeElement;
+  const field = document.createElement("textarea");
+  field.value = text;
+  field.style.cssText = "position:fixed;left:-9999px;top:0";
+  document.body.append(field);
+  field.select();
+  let copied = false;
+  try { copied = document.execCommand("copy"); }
+  finally { field.remove(); previous?.focus(); }
+  if (!copied) throw new Error("Копирование недоступно");
+}
+
+function copyCalculation() {
+  const input = currentInput();
+  const quote = computeQuote(data, input);
+  if (!quote.valid) return toast("Сначала заполните базовый тариф");
+  const lines = [
+    `Расчёт стоимости бухгалтерского обслуживания${input.clientName ? ` — ${input.clientName}` : ""}`,
+    `${input.form}, ${input.tax}, тариф «${input.plan}»`,
+    "",
+    `Базовый тариф: ${money(quote.base)}`
+  ];
+  const coefficientPreset = data.coefficients.find(item => item.id === input.coefficientPreset);
+  if (quote.coefficient !== 1 || coefficientPreset) lines.push(`${coefficientPreset?.name || "Коэффициент"}: × ${formatFactor(quote.coefficient)}`);
+  if (quote.adjustedBase !== quote.base) lines.push(`Базовый тариф с учётом коэффициентов: ${money(quote.adjustedBase)}`);
+  if (quote.employeesCost) lines.push(`Дополнительные сотрудники (${quote.extraEmployees}): ${money(quote.employeesCost)}`);
+  if (quote.accountsCost) lines.push(`Дополнительные расчётные счета (${quote.extraAccounts}): ${money(quote.accountsCost)}`);
+  if (quote.kktCost) lines.push(`Дополнительные ККТ (${quote.extraKkt}): ${money(quote.kktCost)}`);
+  quote.services.forEach(service => lines.push(`${service.name} (${service.quantity}): ${money(service.total)}`));
+  lines.push("", `Итого до скидки: ${money(quote.subtotal)}`);
+  lines.push(`Скидка ${formatFactor(quote.discountPercent)}%: − ${money(quote.discountAmount)}`);
+  lines.push(`Итого после скидки: ${money(quote.total)}`);
+  if (input.comment) lines.push("", `Комментарий: ${input.comment}`);
+  copyText(lines.join("\n")).then(() => toast("Расчёт скопирован")).catch(() => toast("Браузер запретил копирование. Используйте печать КП."));
+}
+
+function proposalRow(label, value, note = "") {
+  return `<tr><td><strong>${escapeHtml(label)}</strong>${note ? `<small>${escapeHtml(note)}</small>` : ""}</td><td>${escapeHtml(value)}</td></tr>`;
+}
+
+function proposalServiceList(title, items) {
+  const content = items.length
+    ? `<ul>${items.map(item => `<li>${escapeHtml(item.service)}</li>`).join("")}</ul>`
+    : `<p>Перечень для этого периода пока не заполнен.</p>`;
+  return `<div class="proposal-service-card"><h3>${escapeHtml(title)}</h3>${content}</div>`;
+}
+
+function createProposal() {
+  const input = currentInput();
+  const quote = computeQuote(data, input);
+  if (!quote.valid) return toast("Сначала заполните базовый тариф");
+
+  const date = new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "long", year: "numeric" }).format(new Date());
+  const rows = [proposalRow(`Тариф «${input.plan}»`, money(quote.base), `${input.form} · ${input.tax}`)];
+  const coefficientPreset = data.coefficients.find(item => item.id === input.coefficientPreset);
+  if (quote.coefficient !== 1 || coefficientPreset) rows.push(proposalRow(coefficientPreset?.name || "Коэффициент", `× ${formatFactor(quote.coefficient)}`));
+  if (quote.adjustedBase !== quote.base) rows.push(proposalRow("База с учётом коэффициентов", money(quote.adjustedBase)));
+  if (quote.employeesCost) rows.push(proposalRow("Дополнительные сотрудники", money(quote.employeesCost), `${quote.extraEmployees} шт.`));
+  if (quote.accountsCost) rows.push(proposalRow("Дополнительные расчётные счета", money(quote.accountsCost), `${quote.extraAccounts} шт.`));
+  if (quote.kktCost) rows.push(proposalRow("Дополнительные ККТ", money(quote.kktCost), `${quote.extraKkt} шт.`));
+  quote.services.forEach(service => rows.push(proposalRow(service.name, money(service.total), `${service.quantity} × ${money(service.price)}`)));
+  rows.push(proposalRow("Итого до скидки", money(quote.subtotal)));
+  rows.push(proposalRow(`Скидка ${formatFactor(quote.discountPercent)}%`, `− ${money(quote.discountAmount)}`));
+  const tariffServiceGroups = getTariffServiceGroups(data, input.plan, input.tariffServiceSet);
+  const tariffServiceSet = getTariffServiceSets(data, input.plan, input.form).find(set => set.key === input.tariffServiceSet);
+
+  $("#proposalDocument").innerHTML = `
+    <header class="proposal-header">
+      <div class="proposal-brand"><img src="data:image/png;base64,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" alt="Логотип Финлайф" /><div><strong>Финлайф</strong><span>Бухгалтерское сопровождение бизнеса</span></div></div>
+      <div class="proposal-meta"><span>Коммерческое предложение</span><strong>${escapeHtml(date)}</strong></div>
+    </header>
+    <div class="proposal-hero">
+      <p>Предложение для</p>
+      <h1 id="proposalTitle">${escapeHtml(input.clientName || "Клиента")}</h1>
+      <div class="proposal-tags"><span>${escapeHtml(input.form)}</span><span>${escapeHtml(input.tax)}</span><span>${escapeHtml(input.plan)}</span></div>
+    </div>
+    <section class="proposal-section">
+      <div class="proposal-section-heading"><span>01</span><div><h2>Стоимость бухгалтерского обслуживания</h2><p>Расчёт сформирован по выбранным параметрам клиента</p></div></div>
+      <table class="proposal-table"><tbody>${rows.join("")}</tbody></table>
+      <div class="proposal-total"><span>Итого после скидки</span><strong>${money(quote.total)}</strong></div>
+    </section>
+    <section class="proposal-section proposal-services">
+      <div class="proposal-section-heading"><span>02</span><div><h2>Что входит в тариф «${escapeHtml(input.plan)}»</h2><p>${escapeHtml(tariffServiceSetLabel(tariffServiceSet))}. Перечень сформирован из справочника состава тарифов.</p></div></div>
+      <div class="proposal-services-grid">${proposalServiceList("Ежемесячно", tariffServiceGroups.monthly)}${proposalServiceList("Ежеквартально", tariffServiceGroups.quarterly)}</div>
+    </section>
+    ${input.comment ? `<section class="proposal-section proposal-comment"><div class="proposal-section-heading"><span>03</span><div><h2>Комментарий к предложению</h2></div></div><p>${escapeHtml(input.comment)}</p></section>` : ""}
+    <footer class="proposal-footer"><div><strong>Финлайф</strong><span>Ваш надёжный бухгалтерский партнёр</span></div><p>Предложение сформировано на основании указанных параметров. Окончательный состав услуг фиксируется в договоре.</p></footer>`;
+
+  $("#proposalModal").classList.remove("hidden");
+  document.body.classList.add("modal-open");
+}
+
+function closeProposal() {
+  $("#proposalModal").classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+function tariffServicesText() {
+  const lines = ["Финлайф", "Состав тарифов бухгалтерского обслуживания"];
+  allTariffServiceSets().forEach(set => {
+    lines.push("", `ТАРИФ «${(data.tariffCardNames?.[`${set.plan}::${set.key}`] ?? set.plan).toUpperCase()}»`, tariffServiceSetLabel(set));
+    const groups = getTariffServiceGroups(data, set.plan, set.key);
+    [["Ежемесячно", groups.monthly], ["Ежеквартально", groups.quarterly]].forEach(([frequency, items]) => {
+      lines.push("", frequency + ":");
+      if (items.length) items.forEach(item => lines.push(`• ${item.service}`)); else lines.push("• Перечень пока не заполнен");
+    });
+  });
+  ensureEditableTariffs(data).editableTariffs.forEach(tariff => {
+    lines.push("", `ТАРИФ «${tariff.name.toUpperCase()}»`, "Временный состав — для редактирования");
+    for (const [label, field] of [["Ежемесячно", "monthly"], ["Ежеквартально", "quarterly"]]) {
+      lines.push("", label + ":", ...tariff[field].map(item => `• ${item}`));
+    }
+  });
+  lines.push("", "Точный объём и лимиты услуг закрепляются в договоре.");
+  return lines.join("\n");
+}
+
+function saveExistingTariff(set, name, groups) {
+  data.tariffCardNames ||= {};
+  data.tariffCardNames[`${set.plan}::${set.key}`] = name;
+  data.tariffServices = data.tariffServices.filter(item => !(
+    (item.plan || "Базовый") === set.plan &&
+    (item.form || ALL_FORMS) === set.form && (item.tax || ALL_TAXES) === set.tax
+  ));
+  const rows = groups.flatMap(group => group.services.map(service => ({
+    id: uid("ts"), form: set.form, tax: set.tax, plan: set.plan, frequency: group.frequency, service
+  })));
+  // Пустой набор оставляем видимым и доступным для повторного редактирования.
+  if (!rows.length) rows.push({ id: uid("ts"), form: set.form, tax: set.tax, plan: set.plan, frequency: "Ежемесячно", service: "" });
+  data.tariffServices.push(...rows);
+}
+
+function initEvents() {
+  $("#clientTariffCards").addEventListener("click", event => {
+    const existingButton = event.target.closest("[data-save-existing]");
+    if (existingButton) {
+      const card = existingButton.closest("[data-existing-tariff]");
+      const set = allTariffServiceSets()[Number(card.dataset.existingTariff)];
+      if (!set) return;
+      const name = card.querySelector('[data-draft-field="name"]').value.trim();
+      if (!name) return toast("Введите название тарифа");
+      const groups = [
+        ["Ежемесячно", "monthly"], ["Ежеквартально", "quarterly"]
+      ].map(([frequency, field]) => ({ frequency, services: card.querySelector(`[data-draft-field="${field}"]`).value.split(/\r?\n/).map(line => line.trim()).filter(Boolean) }));
+      saveExistingTariff(set, name, groups);
+      saveData("Тариф сохранён");
+      return;
+    }
+    const button = event.target.closest("[data-save-draft]");
+    if (!button) return;
+    const card = button.closest("[data-editable-tariff]");
+    const tariff = data.editableTariffs.find(item => item.id === card.dataset.editableTariff);
+    if (!tariff) return;
+    const name = card.querySelector('[data-draft-field="name"]').value.trim();
+    if (!name) return toast("Введите название тарифа");
+    tariff.name = name;
+    for (const field of ["monthly", "quarterly"]) {
+      tariff[field] = card.querySelector(`[data-draft-field="${field}"]`).value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    }
+    saveData("Тариф сохранён");
+  });
+  $$(".tab").forEach(button => button.addEventListener("click", () => {
+    $$(".tab").forEach(tab => tab.classList.toggle("active", tab === button));
+    $$(".page").forEach(page => page.classList.toggle("active", page.id === button.dataset.tab));
+  }));
+  $$(".directory-tab").forEach(button => button.addEventListener("click", () => {
+    $$(".directory-tab").forEach(tab => tab.classList.toggle("active", tab === button));
+    $$(".directory-view").forEach(view => view.classList.toggle("active", view.id === `${button.dataset.directory}Directory`));
+  }));
+  $("#ownership").addEventListener("change", () => { renderTaxes(); renderPlans(); renderTariffServiceSet(); renderQuote(); });
+  $("#taxSystem").addEventListener("change", () => { renderPlans(); renderTariffServiceSet(); renderQuote(); });
+  $("#tariffPlan").addEventListener("change", () => { renderTariffServiceSet(); renderQuote(); });
+  $("#tariffServiceSet").addEventListener("change", () => { renderTariffServiceSetPreview(); renderQuote(); });
+  $("#coefficientPreset").addEventListener("change", () => {
+    const preset = data.coefficients.find(item => item.id === $("#coefficientPreset").value);
+    $("#coefficient").value = preset ? preset.value : 1;
+    renderQuote();
+  });
+  ["clientName", "employees", "accounts", "kkt", "coefficient", "discountPercent", "calculationComment"].forEach(id => $("#" + id).addEventListener("input", renderQuote));
+  $$('[data-step]').forEach(button => button.addEventListener("click", () => {
+    const input = $("#" + button.dataset.step);
+    input.value = Math.max(0, (Number(input.value) || 0) + Number(button.dataset.delta));
+    renderQuote();
+  }));
+  $("#addService").addEventListener("click", () => {
+    const id = $("#serviceSelect").value;
+    if (!id) return;
+    const existing = selectedServices.find(item => item.id === id);
+    if (existing) existing.quantity += 1; else selectedServices.push({ id, quantity: 1 });
+    $("#serviceSelect").value = "";
+    renderSelectedServices(); renderQuote();
+  });
+  $("#selectedServices").addEventListener("input", event => {
+    const line = event.target.closest(".service-line");
+    if (!line || event.target.tagName !== "INPUT") return;
+    const item = selectedServices.find(entry => entry.id === line.dataset.id);
+    item.quantity = Math.max(1, Number(event.target.value) || 1);
+    const service = data.services.find(entry => entry.id === item.id);
+    line.querySelector(".line-total").textContent = money(item.quantity * service.price);
+    renderQuote();
+  });
+  $("#selectedServices").addEventListener("click", event => {
+    const button = event.target.closest(".remove-selected");
+    if (!button) return;
+    selectedServices = selectedServices.filter(item => item.id !== button.closest(".service-line").dataset.id);
+    renderSelectedServices(); renderQuote();
+  });
+  $("#copyCalculation").addEventListener("click", copyCalculation);
+  $("#createProposal").addEventListener("click", createProposal);
+  $("#closeProposal").addEventListener("click", closeProposal);
+  $("#printProposal").addEventListener("click", () => window.print());
+  $("#proposalModal").addEventListener("click", event => { if (event.target === $("#proposalModal")) closeProposal(); });
+  document.addEventListener("keydown", event => { if (event.key === "Escape" && !$("#proposalModal").classList.contains("hidden")) closeProposal(); });
+  $("#copyTariffServices").addEventListener("click", () => copyText(tariffServicesText()).then(() => toast("Перечень услуг скопирован")).catch(() => toast("Браузер запретил копирование. Используйте печать / PDF.")));
+  $("#printTariffServices").addEventListener("click", () => { document.body.classList.add("printing-services"); window.print(); });
+  window.addEventListener("afterprint", () => document.body.classList.remove("printing-services"));
+  $("#newCalculation").addEventListener("click", () => {
+    $("#clientName").value = ""; $("#employees").value = 0; $("#accounts").value = 1; $("#kkt").value = 0; $("#coefficientPreset").value = ""; $("#coefficient").value = 1; $("#discountPercent").value = 0; $("#calculationComment").value = ""; selectedServices = []; renderTariffServiceSet(); renderSelectedServices(); renderQuote();
+  });
+  $("#addRate").addEventListener("click", () => { data.rates.push({ id: uid("r"), form: "ИП", tax: "Новая система", plan: "Базовый", category: "Без сотрудников", price: null }); saveData("Тариф добавлен"); });
+  $("#ratesTable").addEventListener("change", event => editTable(event, "rates"));
+  $("#ratesTable").addEventListener("click", event => deleteTableRow(event, "rates", ".delete-rate"));
+  $("#addCoefficientRow").addEventListener("click", () => { data.coefficients.push({ id: uid("c"), name: "Новый коэффициент", value: 1 }); saveData("Коэффициент добавлен"); });
+  $("#coefficientsTable").addEventListener("change", event => editTable(event, "coefficients"));
+  $("#coefficientsTable").addEventListener("click", event => deleteTableRow(event, "coefficients", ".delete-coefficient"));
+  $("#addTariffServiceRow").addEventListener("click", () => {
+    const input = currentInput();
+    data.tariffServices.push({ id: uid("ts"), form: input.form || ALL_FORMS, tax: input.tax || ALL_TAXES, plan: input.plan || "Базовый", frequency: "Ежемесячно", service: "Новая услуга" });
+    saveData("Услуга тарифа добавлена");
+  });
+  $("#tariffServicesTable").addEventListener("change", event => editTable(event, "tariffServices"));
+  $("#tariffServicesTable").addEventListener("click", event => deleteTableRow(event, "tariffServices", ".delete-tariff-service"));
+  $("#addServiceRow").addEventListener("click", () => { data.services.push({ id: uid("s"), group: "Новый раздел", name: "Новая операция", unit: "услуга", price: 0 }); saveData("Операция добавлена"); });
+  $("#servicesTable").addEventListener("change", event => editTable(event, "services"));
+  $("#servicesTable").addEventListener("click", event => deleteTableRow(event, "services", ".delete-service"));
+  $("#settingsGrid").addEventListener("change", event => {
+    if (!event.target.dataset.setting) return;
+    data.settings[event.target.dataset.setting] = Math.max(0, Number(event.target.value) || 0); saveData();
+  });
+  $("#exportData").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "spravochniki-tarifov.json"; link.click(); URL.revokeObjectURL(link.href); toast("Копия справочников скачана");
+  });
+  $("#importData").addEventListener("change", event => {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader(); reader.onload = () => {
+      try { const next = JSON.parse(reader.result); if (!next.rates || !next.services || !next.settings) throw new Error(); data = upgradeData(next); saveData("Справочники загружены"); }
+      catch (_) { toast("Не удалось прочитать файл"); }
+    }; reader.readAsText(file); event.target.value = "";
+  });
+  $("#resetData").addEventListener("click", () => {
+    if (!confirm("Вернуть исходные тарифы и операции? Ваши изменения будут удалены.")) return;
+    data = clone(initialData); saveData("Исходные справочники восстановлены");
+  });
+}
+
+function editTable(event, collection) {
+  const row = event.target.closest("tr");
+  const field = event.target.dataset.field;
+  if (!row || !field) return;
+  const item = data[collection].find(entry => entry.id === row.dataset.id);
+  item[field] = field === "price" ? (event.target.value === "" ? null : Math.max(0, Number(event.target.value) || 0)) : field === "value" ? Math.max(0, Number(event.target.value) || 0) : event.target.value.trim();
+  saveData();
+}
+
+function deleteTableRow(event, collection, selector) {
+  const button = event.target.closest(selector); if (!button) return;
+  const id = button.closest("tr").dataset.id;
+  data[collection] = data[collection].filter(item => item.id !== id);
+  if (collection === "services") selectedServices = selectedServices.filter(item => item.id !== id);
+  saveData(collection === "rates" ? "Тариф удалён" : collection === "coefficients" ? "Коэффициент удалён" : collection === "tariffServices" ? "Услуга тарифа удалена" : "Операция удалена");
+}
+
+function restoreForm() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FORM_KEY));
+    if (!saved) return;
+    $("#clientName").value = saved.clientName || "";
+    if ([...$("#ownership").options].some(option => option.value === saved.form)) $("#ownership").value = saved.form;
+    renderTaxes(saved.tax);
+    renderPlans(saved.plan || "Базовый");
+    renderTariffServiceSet(saved.tariffServiceSet || "");
+    $("#employees").value = Math.max(0, Number(saved.employees) || 0);
+    $("#accounts").value = Math.max(0, Number(saved.accounts) || 0);
+    $("#kkt").value = Math.max(0, Number(saved.kkt) || 0);
+    renderCoefficientPicker(saved.coefficientPreset || "");
+    $("#coefficient").value = saved.coefficient || saved.increaseFactor || "1";
+    $("#discountPercent").value = saved.discountPercent || "0";
+    $("#calculationComment").value = saved.comment || "";
+    selectedServices = Array.isArray(saved.services) ? saved.services : [];
+  } catch (_) {}
+}
+
+function applyDirectoryFilters() {
+  const active = $(".directory-view.active");
+  if (!active) return;
+  const query = $("#directorySearch").value.trim().toLocaleLowerCase("ru");
+  const mode = $("#priceFilter").value;
+  const hasPrices = !!active.querySelector('[data-field="price"]');
+  $("#priceFilter").disabled = !hasPrices;
+  let count = 0;
+  const rows = [...active.querySelectorAll("tbody tr")];
+  rows.forEach(row => {
+    const text = [...row.querySelectorAll("input, select")].map(field => field.value).join(" ").toLocaleLowerCase("ru");
+    const price = row.querySelector('[data-field="price"]');
+    const matchesPrice = !hasPrices || mode === "all" || (mode === "missing" ? price.value === "" : price.value !== "");
+    row.hidden = !(text.includes(query) && matchesPrice);
+    if (!row.hidden) count++;
+  });
+  $("#directoryFilterStatus").textContent = rows.length ? (count ? `Показано ${count} из ${rows.length}` : "Ничего не найдено. Измените запрос или сбросьте фильтры.") : "Настройки применяются к расчёту автоматически.";
+}
+function labelTableFields() {
+  $$(".directory-view table").forEach(table => {
+    const headings = [...table.querySelectorAll("th")].map(th => th.textContent.trim());
+    table.querySelectorAll("tbody tr").forEach((row, i) => {
+      row.querySelectorAll("td").forEach((cell, j) => cell.querySelectorAll("input, select").forEach(field => field.setAttribute("aria-label", `${headings[j]}, строка ${i + 1}`)));
+    });
+  });
+}
+function openSection(id) {
+  $$(".tab").forEach(button => { const selected = button.dataset.tab === id; button.classList.toggle("active", selected); button.setAttribute("aria-current", selected ? "page" : "false"); });
+  $$(".page").forEach(page => page.classList.toggle("active", page.id === id));
+}
+function initUsability() {
+  $("#quoteForm").addEventListener("submit", event => event.preventDefault());
+  $("#serviceSearch").addEventListener("input", renderServicePicker);
+  $("#directorySearch").addEventListener("input", applyDirectoryFilters);
+  $("#priceFilter").addEventListener("change", applyDirectoryFilters);
+  $("#clearFilters").addEventListener("click", () => { $("#directorySearch").value = ""; $("#priceFilter").value = "all"; applyDirectoryFilters(); });
+  $$(".directory-tab").forEach(button => button.addEventListener("click", applyDirectoryFilters));
+  $$(".tab").forEach(button => button.addEventListener("click", () => openSection(button.dataset.tab)));
+  $("#editCoefficients").addEventListener("click", () => { openSection("directory"); $('[data-directory="coefficients"]').click(); $("#coefficientsDirectory input")?.focus(); });
+  $$("[data-step]").forEach(button => { const label = $("#" + button.dataset.step).closest("label").querySelector("span").textContent; button.setAttribute("aria-label", (Number(button.dataset.delta) > 0 ? "Увеличить: " : "Уменьшить: ") + label); });
+  let previousFocus;
+  const modal = $("#proposalModal");
+  new MutationObserver(() => {
+    if (!modal.classList.contains("hidden")) { previousFocus = document.activeElement; $("#closeProposal").focus(); }
+    else previousFocus?.focus();
+  }).observe(modal, { attributes: true, attributeFilter: ["class"] });
+  modal.addEventListener("keydown", event => {
+    if (event.key !== "Tab") return;
+    const fields = [...modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex="0"]')];
+    const first = fields[0], last = fields.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+  openSection("calculator");
+}
+renderOwnership();
+renderTaxes();
+restoreForm();
+initEvents();
+renderAll();
+
+initUsability();
+
+})();
+</script>
+</body>
+</html>
