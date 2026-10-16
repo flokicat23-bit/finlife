@@ -388,6 +388,15 @@ input,select,textarea { background:#fff; min-height:46px; border-radius:8px; fon
 .tariff-editor button { margin-top: 12px; }
 @media print { .tariff-editor { display: none !important; } }
 
+
+.service-search-results { max-height: 320px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; }
+.service-search-result { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--line); background: #fff; color: inherit; text-align: left; cursor: pointer; }
+.service-search-result:last-child { border-bottom: 0; }
+.service-search-result:hover, .service-search-result:focus-visible { background: #edf5f1; }
+.service-search-result strong { display: block; font-size: 13px; }
+.service-search-result small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+.service-result-price { flex-shrink: 0; text-align: right; color: var(--green-dark); font-weight: 700; }
+.service-search-empty { padding: 14px; margin: 0; font-size: 13px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -453,6 +462,7 @@ input,select,textarea { background:#fff; min-height:46px; border-radius:8px; fon
             <div class="divider"></div>
             <div class="section-title"><span>3</span><div><h2>Дополнительные операции</h2><p>Добавьте только то, что нужно клиенту</p></div></div>
             <label class="field service-search"><span>Найти дополнительную услугу</span><input id="serviceSearch" type="search" placeholder="Например, декларация или кадровый учёт" /></label><p id="serviceSearchStatus" class="filter-status" role="status"></p>
+<div id="serviceSearchResults" class="service-search-results" aria-label="Найденные дополнительные услуги" hidden></div>
 <div class="service-picker">
               <select id="serviceSelect" aria-label="Дополнительная операция"></select>
               <button id="addService" class="button dark" type="button">Добавить</button>
@@ -988,6 +998,23 @@ function renderServicePicker() {
   const options = [...data.services].filter(item => `${item.group} ${item.name}`.toLocaleLowerCase("ru").includes(query)).sort((a, b) => a.group.localeCompare(b.group, "ru") || a.name.localeCompare(b.name, "ru"));
   $("#serviceSearchStatus").textContent = query ? `Найдено услуг: ${options.length}` : `В каталоге ${options.length} услуг`;
   $("#serviceSelect").innerHTML = `<option value="">Выберите операцию…</option>` + options.map(service => `<option value="${service.id}">${escapeHtml(service.group)} · ${escapeHtml(service.name)} — ${money(service.price)}</option>`).join("");
+  const results = $("#serviceSearchResults");
+  results.hidden = !query;
+  results.innerHTML = !query ? "" : options.length ? options.map(service => `
+    <button type="button" class="service-search-result" data-add-service="${escapeAttr(service.id)}">
+      <span><strong>${escapeHtml(service.name)}</strong><small>${escapeHtml(service.group)} · ${escapeHtml(service.unit)}</small></span>
+      <span class="service-result-price">${money(service.price)}<small>+ Добавить</small></span>
+    </button>`).join("") : `<p class="service-search-empty">Услуги не найдены. Попробуйте другое название.</p>`;
+}
+
+function addSelectedService(id) {
+  if (!data.services.some(service => service.id === id)) return;
+  const existing = selectedServices.find(item => item.id === id);
+  if (existing) existing.quantity += 1; else selectedServices.push({ id, quantity: 1 });
+  $("#serviceSelect").value = "";
+  renderSelectedServices();
+  renderQuote();
+  toast("Услуга добавлена");
 }
 
 function renderSelectedServices() {
@@ -1339,6 +1366,10 @@ function saveExistingTariff(set, name, groups) {
 }
 
 function initEvents() {
+  $("#serviceSearchResults").addEventListener("click", event => {
+    const button = event.target.closest("[data-add-service]");
+    if (button) addSelectedService(button.dataset.addService);
+  });
   $("#clientTariffCards").addEventListener("click", event => {
     const existingButton = event.target.closest("[data-save-existing]");
     if (existingButton) {
@@ -1391,12 +1422,7 @@ function initEvents() {
     renderQuote();
   }));
   $("#addService").addEventListener("click", () => {
-    const id = $("#serviceSelect").value;
-    if (!id) return;
-    const existing = selectedServices.find(item => item.id === id);
-    if (existing) existing.quantity += 1; else selectedServices.push({ id, quantity: 1 });
-    $("#serviceSelect").value = "";
-    renderSelectedServices(); renderQuote();
+    addSelectedService($("#serviceSelect").value);
   });
   $("#selectedServices").addEventListener("input", event => {
     const line = event.target.closest(".service-line");
